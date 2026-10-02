@@ -1,0 +1,1 @@
+(function(){function r(){document.querySelectorAll('.av img,.bn img').forEach(function(i){var k=i.closest('.bn')?'blooming:cover':'blooming:avatar';try{var x=localStorage.getItem(k);if(x)i.src=x}catch(e){}})}document.addEventListener('DOMContentLoaded',r);new MutationObserver(r).observe(document.documentElement,{childList:true,subtree:true});})();
