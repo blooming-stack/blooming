@@ -1438,4 +1438,5 @@ restoreSession();
 try{view();loadTombstones().then(()=>{try{purgeDeletedContent();view();if(CLOUD_ON)setTimeout(()=>cloudPull(),0)}catch(err){console.warn('tombstones startup',err)}});if(CLOUD_ON)setTimeout(()=>cloudPull(),300)}catch(e){console.error('Falha ao abrir Blooming:',e);const a=document.getElementById('app');if(a){a.innerHTML='<div class="lo"><h1 class="lg">Blooming</h1><p>Ocorreu um erro ao iniciar a interface.</p><p class="mut">Seus dados atuais foram preservados.</p><button class="b" onclick="repairBlooming()">Corrigir e abrir</button></div>'}}
 /* Automação fica sob demanda para evitar bloqueio durante a abertura do HTML. */
 setInterval(()=>{try{runAutomations()}catch(e){console.warn('Automação:',e)}},60000);
-</script></body></html>
+</script><script src="./profile-media-v2.js"></script>
+</body></html>
