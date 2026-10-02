@@ -1,9 +1,8 @@
-/* Blooming profile/UI fix v4
-   Root fix: the crop dialog replaces the profile editor dialog. The original
-   cropSave handler closes #md before the editor's local ph/cp variables can
-   reach the Save handler. This patch captures cropSave in the capture phase,
-   persists the rendered crop directly to the active profile, then reopens the
-   editor. It also provides a capture-phase close handler for settings/modals.
+/* Blooming profile/UI fix v5
+   - Keeps the working profile-media persistence from v4.
+   - When the profile is changed from Settings, closing Settings now refreshes
+     the currently active profile immediately.
+   - Does not change the profile-switching/storage logic itself.
 */
 (function(){
   'use strict';
@@ -31,7 +30,7 @@
       if(typeof save === 'function') save();
       if(typeof CLOUD_ON !== 'undefined' && CLOUD_ON && typeof cloudSync === 'function') cloudSync();
       return true;
-    }catch(e){ console.warn('Blooming v4 media persistence',e); return false; }
+    }catch(e){ console.warn('Blooming v5 media persistence',e); return false; }
   }
 
   function scaledCrop(canvas, kind){
@@ -44,6 +43,19 @@
     return out.toDataURL('image/jpeg',0.90);
   }
 
+  function refreshActiveProfile(){
+    try{
+      // The app's own view() reads the current active profile from its state.
+      // Calling it after Settings closes avoids changing the profile-switch logic.
+      if(typeof view === 'function'){
+        view();
+        return;
+      }
+      // Fallback: re-dispatch the current route so the normal renderer runs.
+      if(location.hash) window.dispatchEvent(new HashChangeEvent('hashchange'));
+    }catch(e){ console.warn('Blooming refresh active profile',e); }
+  }
+
   document.addEventListener('click', function(ev){
     var target = ev.target && ev.target.closest ? ev.target.closest('[data-m="cropSave"]') : null;
     if(!target) return;
@@ -52,9 +64,7 @@
     var heading=document.querySelector('#md h2');
     var kind=heading && /capa/i.test(heading.textContent||'') ? 'cover' : 'avatar';
     var data;
-    try{ data=scaledCrop(canvas,kind); }catch(e){ console.warn('Blooming v4 crop',e); return; }
-
-    // Do not let the original handler close the dialog before persistence.
+    try{ data=scaledCrop(canvas,kind); }catch(e){ console.warn('Blooming v5 crop',e); return; }
     ev.preventDefault();
     ev.stopImmediatePropagation();
     if(persistCrop(kind,data)){
@@ -62,27 +72,23 @@
       setTimeout(function(){
         try{
           if(typeof editU === 'function' && getEditId()) editU(getEditId());
-          else if(typeof view === 'function') view();
-        }catch(e){ console.warn('Blooming v4 reopen editor',e); }
+          else refreshActiveProfile();
+        }catch(e){ console.warn('Blooming v5 reopen editor',e); }
       },40);
     }
   }, true);
 
-  // Remember which profile is being edited. The wrapper is installed repeatedly
-  // because the main app may replace globals during boot.
   function hookEdit(){
     try{
-      if(typeof window.editU === 'function' && !window.__bloomingEditV4){
+      if(typeof window.editU === 'function' && !window.__bloomingEditV5){
         var old=window.editU;
         var wrapped=function(id){ editId=id; return old.apply(this,arguments); };
         window.editU=wrapped;
-        window.__bloomingEditV4=true;
+        window.__bloomingEditV5=true;
       }
     }catch(_){ }
   }
 
-  // Settings and modal close buttons: handle them in capture phase so a modal
-  // whose local onclick handler was replaced still closes reliably.
   document.addEventListener('click',function(ev){
     var b=ev.target && ev.target.closest ? ev.target.closest('#md [data-m="x"]') : null;
     if(!b) return;
@@ -90,7 +96,11 @@
     if(!d) return;
     ev.preventDefault();
     ev.stopImmediatePropagation();
-    try{ if(d.open) d.close(); }catch(_){ d.removeAttribute('open'); }
+    try{ if(d.open) d.close(); else d.removeAttribute('open'); }catch(_){ d.removeAttribute('open'); }
+    // Give the profile-switch/save handlers one turn to finish, then render the
+    // profile that is currently active in Settings.
+    setTimeout(refreshActiveProfile, 0);
+    setTimeout(refreshActiveProfile, 80);
   },true);
 
   hookEdit();
