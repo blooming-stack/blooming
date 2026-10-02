@@ -1,0 +1,30 @@
+name: Load profile media v2
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Load profile media renderer
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          tag='<script src="./profile-media-v2.js"></script>'
+          if tag not in s:
+              s=s.replace('</body>',tag+'\n</body>',1)
+              p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name 'blooming-stack'
+          git config user.email '337070369+blooming-stack@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'Load profile media persistence v2'
+          git push
