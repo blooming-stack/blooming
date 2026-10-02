@@ -808,8 +808,19 @@ function unlockScreen(ok){const a=currentAccount();const title=a?`Conta: ${H(a.n
 function vaultSetup(){md(`<h2>Código de acesso</h2><p class="mut">Guarda os perfis atuais atrás do seu nome e de um código. Só quem souber o código consegue trocar para eles.</p><label for="vn">Seu nome</label><input class="fi" id="vn" value="${H(S.vault?S.vault.nome:'')}"><label for="vc1">Código</label><input class="fi" id="vc1" type="password"><label for="vc2">Repita o código</label><input class="fi" id="vc2" type="password"><div class="sd" style="padding:0"><button class="b g" data-m="x">Cancelar</button><button class="b" data-m="ok">Salvar</button></div><p id="er" class="tg"></p>`);
  $('#md').onclick=e=>{const k=e.target.dataset.m;if(k==='x')$('#md').close();if(k==='ok'){const n=$('#vn').value.trim(),c=$('#vc1').value;if(!n||c.length<4){$('#er').textContent='Informe seu nome e um código de pelo menos 4 caracteres.';return}if(c!==$('#vc2').value){$('#er').textContent='Os códigos não são iguais.';return}S.vault={nome:n,h:pwh(c)};Object.values(S.u).forEach(u=>{u.lock=u.lock!==false});accessMode='vault';UNL=true;save();$('#md').close();S.me?accounts():unlockScreen(true)}}}
 function publicUsernameFromPath(){
- const p=decodeURIComponent(location.pathname.replace(/^\/+|\/+$/g,''));
- if(!p||location.hash||p.includes('/')||p.startsWith('.')||/^(index\.html|favicon\.ico|robots\.txt|sitemap\.xml|_redirects)$/i.test(p))return '';
+ const raw=decodeURIComponent(location.pathname||'').replace(/^\/+|\/+$/g,'');
+ if(!raw||location.hash)return '';
+
+ // GitHub Pages project sites use /<repository>/ as the application base.
+ // Do not mistake the repository name (e.g. "blooming") for a username.
+ const parts=raw.split('/').filter(Boolean);
+ let p=raw;
+ if(location.hostname.endsWith('.github.io')){
+   if(parts.length<=1)return '';
+   p=parts.slice(1).join('/');
+ }
+ // Direct public profiles may be /repo/@username or /@username.
+ if(p.includes('/')||p.startsWith('.')||/^(index\.html|favicon\.ico|robots\.txt|sitemap\.xml|_redirects)$/i.test(p))return '';
  return p.replace(/^@/,'').trim();
 }
 async function publicProfilePage(username){

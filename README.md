@@ -1,31 +1,19 @@
-# Blooming — GitHub Pages
+# Blooming — GitHub Pages (corrigido)
 
-Pacote preparado para hospedar o Blooming no GitHub Pages.
+Esta versão corrige o roteamento do GitHub Pages para um repositório em:
+`https://USUARIO.github.io/blooming/`
 
-## Estrutura
+O aplicativo não interpreta mais `/blooming/` como se "blooming" fosse um nome de usuário.
 
-- `index.html` — aplicativo Blooming
-- `404.html` — fallback para rotas do aplicativo
-- `.nojekyll` — desativa processamento Jekyll
-- `robots.txt` — solicita que robôs não rastreiem/indexem o site
+Arquivos:
+- index.html
+- 404.html
+- .nojekyll
+- robots.txt
 
-## Publicação
+Publique todos na raiz do repositório e faça um novo commit.
+Depois, aguarde o Pages atualizar e abra:
+`https://USUARIO.github.io/blooming/`
 
-1. Crie um repositório no GitHub.
-2. Envie os arquivos desta pasta para a raiz do repositório.
-3. No GitHub, abra **Settings → Pages**.
-4. Em **Build and deployment**, selecione **Deploy from a branch**.
-5. Escolha a branch `main` e a pasta `/ (root)`.
-6. Salve e aguarde a publicação.
-
-O site ficará em uma URL parecida com:
-`https://SEU-USUARIO.github.io/NOME-DO-REPOSITORIO/`
-
-## Não listado
-
-O pacote inclui `noindex` e `robots.txt` para evitar indexação por mecanismos de busca.
-Isso não é autenticação: qualquer pessoa que possuir o link poderá acessar.
-
-## Supabase
-
-O Blooming continua usando o Supabase configurado no próprio aplicativo. GitHub Pages hospeda os arquivos; os dados compartilhados continuam no Supabase.
+Para um perfil público, a rota pode ser:
+`https://USUARIO.github.io/blooming/@usuario`
