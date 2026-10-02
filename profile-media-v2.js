@@ -1,4 +1,18 @@
 (function(){'use strict';
+/* The previous frontend default pointed to a non-existent/incorrect Supabase ref (...hjs4).
+   The connected Blooming project is ...hjsv. Repair both the in-memory and stored config before
+   any profile save/sync happens. */
+try{
+  var CORRECT_URL='https://eulxkpxjwhwknegvhjsv.supabase.co';
+  if(typeof CLOUD_CFG!=='undefined'){
+    CLOUD_CFG.url=CORRECT_URL;
+    try{localStorage.setItem('blooming-cloud-config-v1',JSON.stringify(CLOUD_CFG))}catch(e){}
+    if(window.supabase&&CLOUD_CFG.key){
+      try{SB=window.supabase.createClient(CORRECT_URL,CLOUD_CFG.key);CLOUD_ON=true;}catch(e){console.warn('Blooming Supabase reconnect',e)}
+    }
+  }
+}catch(e){console.warn('Blooming Supabase URL repair',e)}
+
 var DB='blooming-profile-media-fallback', STORE='media', KEY='__blooming_profile_media_v3__';
 function openDB(){return new Promise(function(resolve,reject){if(!window.indexedDB)return reject();var r=indexedDB.open(DB,2);r.onupgradeneeded=function(){var d=r.result;if(!d.objectStoreNames.contains(STORE))d.createObjectStore(STORE)};r.onsuccess=function(){resolve(r.result)};r.onerror=reject})}
 function put(k,v){return openDB().then(function(d){return new Promise(function(resolve,reject){var q=d.transaction(STORE,'readwrite').objectStore(STORE).put(v,k);q.onsuccess=resolve;q.onerror=reject})}).catch(function(){})}
