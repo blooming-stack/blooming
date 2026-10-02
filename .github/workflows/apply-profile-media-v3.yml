@@ -1,0 +1,43 @@
+name: Apply Blooming profile media v3
+
+on:
+  push:
+    paths-ignore:
+      - 'index.html'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-index:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Add profile media v3 script
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          script = '<script defer src="./profile-media-v3.js?v=3"></script>'
+          if script not in s:
+              if '</head>' not in s:
+                  raise SystemExit('No </head> found; refusing to modify index.html')
+              s = s.replace('</head>', script + '</head>', 1)
+              p.write_text(s, encoding='utf-8')
+              print('profile-media-v3 script added')
+          else:
+              print('profile-media-v3 already present')
+
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m 'Load profile media persistence fix v3 [skip ci]'
+          git push
