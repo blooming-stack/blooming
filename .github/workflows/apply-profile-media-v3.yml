@@ -1,4 +1,4 @@
-name: Apply Blooming profile media v3
+name: Apply Blooming profile media v4
 
 on:
   push:
@@ -16,21 +16,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Add profile media v3 script
+      - name: Add profile media v4 script
         shell: python
         run: |
           from pathlib import Path
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
-          script = '<script defer src="./profile-media-v3.js?v=3"></script>'
+          script = '<script defer src="./profile-media-v4.js?v=4"></script>'
           if script not in s:
               if '</head>' not in s:
                   raise SystemExit('No </head> found; refusing to modify index.html')
               s = s.replace('</head>', script + '</head>', 1)
               p.write_text(s, encoding='utf-8')
-              print('profile-media-v3 script added')
+              print('profile-media-v4 script added')
           else:
-              print('profile-media-v3 already present')
+              print('profile-media-v4 already present')
 
       - name: Commit
         shell: bash
@@ -39,5 +39,5 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html
           git diff --cached --quiet && exit 0
-          git commit -m 'Load profile media persistence fix v3 [skip ci]'
+          git commit -m 'Load profile media and settings fix v4 [skip ci]'
           git push
