@@ -1,4 +1,4 @@
-/* Blooming final corrections: durable profile sync, clean URLs and real pinned marker. */
+/* Blooming final corrections: durable profile sync, clean URLs, media without borders and pinned marker. */
 (function(){'use strict';
 const q=s=>document.querySelector(s), all=s=>Array.from(document.querySelectorAll(s)), txt=v=>String(v??'').trim();
 function me(){try{return S&&S.u&&S.me?S.u[S.me]:null}catch(_){return null}}
@@ -15,12 +15,17 @@ function cloudGuard(){if(window.__bloomingCloudGuard)return;window.__bloomingClo
 function profileLinks(){const base='/blooming/';const fix=()=>all('a[href]').forEach(a=>{let h=a.getAttribute('href')||'',m=h.match(/(?:#\/)?(?:blooming\/)?perfil\/([^/?#]+)/i);if(m){let slug=m[1],u=Object.values(S?.u||{}).find(x=>String(x.user||x.username||'').replace(/^@/,'').toLowerCase()===slug.replace(/^@/,'').toLowerCase()||String(x.id)===slug);a.href=base+'perfil/'+encodeURIComponent(String(u?.user||u?.username||slug).replace(/^@/,''));return}m=h.match(/(?:#\/)?(?:blooming\/)?post\/([^/?#]+)/i);if(m){const p=S?.posts?.find(x=>String(x.id)===String(m[1])),u=p&&S.u?.[p.u];if(u)a.href=base+'perfil/'+encodeURIComponent(String(u.user||u.username||'').replace(/^@/,''))+'/post/'+encodeURIComponent(m[1])}});fix();setTimeout(fix,700);setTimeout(fix,1800)}
 function navigate(){const m=location.pathname.match(/^\/blooming\/perfil\/([^/]+)(?:\/post\/([^/]+))?/i);if(!m||!S?.u)return;const slug=decodeURIComponent(m[1]).replace(/^@/,'').toLowerCase(),u=Object.values(S.u).find(x=>String(x.user||x.username||'').replace(/^@/,'').toLowerCase()===slug);if(!u)return;S.me=u.id;if(m[2]){S.post=m[2];S.route='post'}else S.route='perfil';try{typeof view==='function'&&view()}catch(_){} }
 function routes(){document.addEventListener('click',e=>{const a=e.target.closest?.('a[href]');if(!a)return;const h=a.getAttribute('href')||'';const m=h.match(/(?:#\/)?(?:blooming\/)?perfil\/([^/?#]+)(?:\/post\/([^/?#]+))?/i);if(!m)return;e.preventDefault();history.pushState({},'',`/blooming/perfil/${encodeURIComponent(m[1].replace(/^@/,''))}${m[2]?'/post/'+encodeURIComponent(m[2]):''}`);navigate()},true);addEventListener('popstate',navigate)}
-function pin(){let s=q('#blooming-real-pin-style');if(!s){s=document.createElement('style');s.id='blooming-real-pin-style';document.head.appendChild(s)}s.textContent=`/* Pinned post keeps the exact same layout as normal posts. Lotus sits beside the author/date row, not at the very top. */
+function visual(){let s=q('#blooming-final-visual-style');if(!s){s=document.createElement('style');s.id='blooming-final-visual-style';document.head.appendChild(s)}s.textContent=`/* Media: full presentation without decorative borders. */
+.po img,.po video,.po iframe,.po .media,.po .media img,.po .media video,.po .post-media,.po .post-media img,.po .post-media video{border:0!important;outline:0!important;box-shadow:none!important;border-radius:0!important}
+.po .media,.po .post-media{overflow:hidden!important}
+/* Pinned post keeps the exact same geometry as normal posts. */
 .po,.po.is-pinned,.po[data-pinned="true"]{box-sizing:border-box!important}
-.po .bd{min-width:0!important;flex:1 1 auto!important;position:relative!important}
-.po .bd>.pinned-lotus{position:absolute!important;top:9px!important;right:0!important;left:auto!important;bottom:auto!important;z-index:100!important;margin:0!important;padding:0!important;transform:none!important}
-.po>.pinned-lotus{position:absolute!important;top:24px!important;right:16px!important;left:auto!important;bottom:auto!important;z-index:100!important;margin:0!important;padding:0!important;transform:none!important}
-`;}
-function init(){profileSync();cloudGuard();purgeGenerics();profileLinks();routes();pin();setTimeout(()=>{cloudGuard();purgeGenerics();profileLinks();pin();navigate()},1000)}
+.po.is-pinned{margin-left:0!important;margin-right:0!important;padding-left:0!important;padding-right:0!important}
+.po.is-pinned .bd{min-width:0!important;flex:1 1 auto!important;position:relative!important}
+/* Lotus keeps its original SVG and size; aligned with the author/date row on the right. */
+.po.is-pinned .bd>.pinned-lotus{position:absolute!important;top:12px!important;right:0!important;left:auto!important;bottom:auto!important;z-index:100!important;margin:0!important;padding:0!important;transform:none!important}
+.po.is-pinned>.pinned-lotus{position:absolute!important;top:24px!important;right:16px!important;left:auto!important;bottom:auto!important;z-index:100!important;margin:0!important;padding:0!important;transform:none!important}
+`}
+function init(){profileSync();cloudGuard();purgeGenerics();profileLinks();routes();visual();setTimeout(()=>{cloudGuard();purgeGenerics();profileLinks();visual();navigate()},1000)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
