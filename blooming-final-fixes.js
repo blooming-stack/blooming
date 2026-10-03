@@ -13,22 +13,8 @@ function clonePosts(){try{return Array.isArray(S?.posts)?S.posts.map(p=>JSON.par
 function mergePosts(before){try{if(!window.S)return;const current=Array.isArray(S.posts)?S.posts:[];const map=new Map();before.forEach(p=>{if(p&&p.id!=null)map.set(String(p.id),p)});current.forEach(p=>{if(p&&p.id!=null)map.set(String(p.id),p)});S.posts=Array.from(map.values())}catch(e){console.warn('Blooming post merge',e)}}
 let pushTimer=0,pushing=false,pending=false;
 function pushSoon(){clearTimeout(pushTimer);pushTimer=setTimeout(async()=>{if(typeof window.cloudPush!=='function')return;if(pushing){pending=true;return}pushing=true;try{await window.cloudPush()}catch(e){console.warn('Blooming cloud push',e)}finally{pushing=false;if(pending){pending=false;pushSoon()}}},500)}
-function persistence(){if(window.__bloomingPersistenceFix)return;window.__bloomingPersistenceFix=true;const oldSave=window.saveLocalOnly;if(typeof oldSave==='function'){window.saveLocalOnly=function(){const r=oldSave.apply(this,arguments);pushSoon();return r}}const oldPull=window.cloudPull;if(typeof oldPull==='function'&&!oldPull.__bloomingWrapped){const wrappedPull=async function(){const before=clonePosts();let r;try{r=await oldPull.apply(this,arguments)}finally{mergePosts(before);pushSoon()}return r};wrappedPull.__bloomingWrapped=true;window.cloudPull=wrappedPull}setInterval(()=>{try{if(window.S?.posts?.length)pushSoon()}catch(_){}},2500);window.addEventListener('beforeunload',()=>{try{if(typeof window.cloudPush==='function')window.cloudPush()}catch(_){} });setTimeout(()=>pushSoon(),1000)}
-function syncFromCloudNonBlocking(){
- let tries=0;
- const run=async()=>{
-  tries++;
-  try{
-   if(typeof window.cloudPull!=='function'){if(tries<6)setTimeout(run,1000);return}
-   if(typeof window.CLOUD_ON!=='undefined'&&!window.CLOUD_ON){if(tries<6)setTimeout(run,1000);return}
-   await window.cloudPull();
-   try{if(typeof window.saveLocalOnly==='function')window.saveLocalOnly()}catch(_){ }
-   try{if(typeof window.view==='function')window.view()}catch(_){ }
-  }catch(e){console.warn('Blooming delayed cloud pull',e);if(tries<3)setTimeout(run,2500)}
- };
- setTimeout(run,1800);
-}
-function init(){persistence();const p=decodeURIComponent(location.pathname).replace(/\/+$/,'')||BASE;if(location.hash){const clean=pathForHash(location.hash);if(clean){history.replaceState(history.state,'',clean);renderClean(clean)}syncFromCloudNonBlocking();return}renderClean(p);setTimeout(cleanLinks,150);setTimeout(cleanLinks,1000);syncFromCloudNonBlocking()}
+function persistence(){if(window.__bloomingPersistenceFix)return;window.__bloomingPersistenceFix=true;const oldSave=window.saveLocalOnly;if(typeof oldSave==='function'){window.saveLocalOnly=function(){const r=oldSave.apply(this,arguments);pushSoon();return r}}setInterval(()=>{try{if(window.S?.posts?.length)pushSoon()}catch(_){}},2500);window.addEventListener('beforeunload',()=>{try{if(typeof window.cloudPush==='function')window.cloudPush()}catch(_){} });setTimeout(()=>pushSoon(),1000)}
+function init(){persistence();const p=decodeURIComponent(location.pathname).replace(/\/+$/,'')||BASE;if(location.hash){const clean=pathForHash(location.hash);if(clean){history.replaceState(history.state,'',clean);renderClean(clean)}return}renderClean(p);setTimeout(cleanLinks,150);setTimeout(cleanLinks,1000)}
 document.addEventListener('click',e=>{const a=e.target.closest?.('a[href]');if(a){const h=a.getAttribute('href')||'';if(h.startsWith('#/')){const p=pathForHash(h);if(p){e.preventDefault();history.pushState(history.state,'',p);renderClean(p);return}}}const action=e.target.closest?.('[data-a]')?.dataset?.a;if(action==='acc'){e.preventDefault();const p=BASE+'configuracoes';history.pushState(history.state,'',p);renderClean(p)}else if(action==='np'){e.preventDefault();const p=BASE+'novapublicacao';history.pushState(history.state,'',p);renderClean(p)}},true);
 window.addEventListener('popstate',()=>renderClean(decodeURIComponent(location.pathname).replace(/\/+$/,'')||BASE));
 window.addEventListener('hashchange',()=>{if(window.__bloomingCleanRoute)return;const p=pathForHash(location.hash);if(p){history.replaceState(history.state,'',p);renderClean(p)}});
