@@ -1,89 +1,17 @@
-/* Blooming — compatibility and persistence fixes for the existing index.html. */
+/* Blooming — stable cross-device fixes. */
 (function(){
   'use strict';
-  function closeProfileManager(){
-    ['#manageProfilesModal','#profileManagerModal','#manageProfiles','#profilesManager','[data-modal="manage-profiles"]'].forEach(function(s){document.querySelectorAll(s).forEach(function(el){el.classList.remove('open','show','active','visible');el.setAttribute('aria-hidden','true');el.style.display='none';});});
-    try{if(typeof closeModal==='function')closeModal('manageProfilesModal')}catch(e){}
-  }
-  function placeLotus(){document.querySelectorAll('.pin-lotus,[data-pinned-icon],.pinned-icon').forEach(function(icon){var post=icon.closest('.po,.post,.pinned-post,[data-pinned="true"],[data-pinned="1"]');if(!post||post.closest('.community,.community-view,[data-community],.chat,.msgs,.messages'))return;post.classList.add('blooming-pinned-fixed');post.style.position='relative';var wanted='position:absolute!important;top:10px!important;right:10px!important;left:auto!important;bottom:auto!important;width:26px!important;height:26px!important;transform:none!important;z-index:20!important;';if(icon.dataset.bloomingLotusFixed!=='1'){icon.style.cssText+=(icon.style.cssText?'':'')+';'+wanted;icon.dataset.bloomingLotusFixed='1';}});}
-  function hideInvalidShare(){document.querySelectorAll('.ac button,.ac .actionlink,button,a').forEach(function(el){var t=(el.textContent||'').trim().toLowerCase();if((t.indexOf('compart')>=0||t.indexOf('share')>=0)&&el.closest('.community,.community-view,[data-community],.chat,.msgs,.messages'))el.style.display='none';});}
-  function bindForgotCode(){document.querySelectorAll('[data-a="forgot"]').forEach(function(btn){if(btn.dataset.bloomingForgotBound==='1')return;btn.dataset.bloomingForgotBound='1';btn.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();try{if(typeof forgotCode==='function')forgotCode();else if(window.forgotCode)window.forgotCode();}catch(err){console.error('Blooming forgot-code',err)}},true);});}
-  async function repairProfileMedia(){try{if(typeof restoreProfileMediaDB==='function')await restoreProfileMediaDB()}catch(e){console.warn('Blooming profile media repair',e)}}
-
-  function fixPageScroll(){
-    var style=document.getElementById('blooming-scroll-fix');
-    if(!style){style=document.createElement('style');style.id='blooming-scroll-fix';(document.head||document.documentElement).appendChild(style);}
-    style.textContent=''+
-      '@media(min-width:701px){html,body{height:100%;overflow:hidden!important}#app{height:100vh;min-height:0!important;overflow:hidden!important}.sh{height:100vh!important;min-height:0!important;align-items:stretch!important}.nv{position:sticky!important;top:0!important;height:100vh!important;max-height:100vh!important;overflow:hidden!important;align-self:start!important}.rc{position:sticky!important;top:0!important;height:100vh!important;max-height:100vh!important;overflow:auto!important;align-self:start!important}main{height:100vh!important;min-height:0!important;max-height:100vh!important;overflow-y:auto!important;overflow-x:hidden!important}}'+
-      '@media(max-width:700px){html,body{height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important}#app{height:auto!important;min-height:100vh!important;overflow:visible!important}.sh{display:grid!important;grid-template-columns:1fr!important;height:auto!important;min-height:100vh!important}.nv{position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;height:auto!important;max-height:none!important;display:flex!important;flex-direction:row!important;justify-content:space-around!important;align-items:stretch!important;overflow:visible!important;z-index:1000!important;padding:4px 4px calc(4px + env(safe-area-inset-bottom,0px))!important}.nv .lg,.nv .b,.nv .me{display:none!important}.nv a,.nv button.l{display:flex!important;flex:1 1 0!important;min-width:0!important;justify-content:center!important;align-items:center!important;padding:10px 8px!important;gap:0!important}.nv a span,.nv button.l span{display:none!important}.nv a .ic,.nv button.l .ic{width:24px!important;height:24px!important}main{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;padding-bottom:76px!important}.rc{position:static!important;height:auto!important;max-height:none!important;overflow:visible!important;display:none!important}}';
-  }
-
-  async function persistProfileToCloud(u){
-    try{
-      if(!u||typeof CLOUD_ON==='undefined'||!CLOUD_ON||typeof SB==='undefined'||!SB)return;
-      var accountId=u.accountId||null;
-      try{var a=typeof currentAccount==='function'?currentAccount():null;if(a&&a.id)accountId=typeof cloudAccountId==='function'?cloudAccountId(a.id):a.id}catch(_){ }
-      if(!accountId)return;
-      var row={id:u.id,account_id:accountId,nome:u.nome||'Perfil',username:u.user||'',bio:u.bio||'',loc:u.loc||'',cor:u.cor||'#E8336F',emo:u.emo||'🌸',foto:u.foto||'',capa:u.capa||'',verificado:!!u.verificado,privada:!!u.privada,seg:+u.seg||0,sgd:+u.sgd||0};
-      var r=await SB.from('blooming_profiles').upsert(row,{onConflict:'id'});if(r&&r.error)throw r.error;
-      u.accountId=accountId;if(typeof saveLocalOnly==='function')saveLocalOnly();
-    }catch(err){console.warn('Blooming explicit profile sync',err)}
-  }
-
-  function installProfilePersistence(){
-    try{
-      if(typeof window.editU==='function'&&!window.__bloomingEditPersistencePatch){
-        var originalEdit=window.editU;
-        window.editU=function(id){
-          var result=originalEdit.apply(this,arguments);
-          setTimeout(function(){
-            var modal=document.getElementById('md');if(!modal)return;
-            if(modal.dataset.bloomingProfileSaveBound==='1')return;
-            var originalClick=modal.onclick;
-            if(typeof originalClick!=='function')return;
-            modal.dataset.bloomingProfileSaveBound='1';
-            modal.onclick=async function(e){
-              var m=e.target.closest&&e.target.closest('[data-m]')?.dataset.m;
-              if(m!=='s')return originalClick.call(this,e);
-              try{
-                var out=await originalClick.call(this,e);
-                var pid=id||S.me,u=S&&S.u&&S.u[pid];
-                if(u)await persistProfileToCloud(u);
-                return out;
-              }catch(err){console.warn('Blooming profile save hook',err);try{return await originalClick.call(this,e)}catch(_){return undefined}}
-            };
-          },0);
-          return result;
-        };
-        window.__bloomingEditPersistencePatch=true;
-      }
-    }catch(err){console.warn('Blooming edit persistence patch',err)}
-  }
-
-  function installCloudPatches(){
-    try{
-      if(typeof window.publishPost==='function'&&!window.__bloomingPublishCloudPatch){
-        var originalPublish=window.publishPost;
-        window.publishPost=async function(){var before=new Set((S.posts||[]).map(function(p){return String(p.id)}));await originalPublish.apply(this,arguments);if(typeof saveLocalOnly==='function')saveLocalOnly();if(typeof CLOUD_ON!=='undefined'&&CLOUD_ON&&typeof SB!=='undefined'&&SB&&typeof cloudSync==='function'){try{await cloudSync()}catch(err){console.warn('Blooming publish cloud sync',err)}}return [...(S.posts||[])].find(function(p){return !before.has(String(p.id))})||null};
-        window.__bloomingPublishCloudPatch=true;
-      }
-      if(typeof window.cloudPull==='function'&&!window.__bloomingCloudPullPatch){
-        var originalPull=window.cloudPull;
-        window.cloudPull=async function(){var result=await originalPull.apply(this,arguments);try{if(S&&S.accounts&&S.u){Object.values(S.accounts).forEach(function(a){a.profiles=[]});Object.values(S.u).forEach(function(u){if(!u||!u.id||!u.accountId)return;if(!S.accounts[u.accountId])S.accounts[u.accountId]={id:u.accountId,nome:u.nome||'Conta',pw:'',profiles:[],legacy:String(u.accountId).indexOf('legacy:')===0};var a=S.accounts[u.accountId];a.profiles=Array.isArray(a.profiles)?a.profiles:[];if(!a.profiles.includes(u.id))a.profiles.push(u.id)});if(typeof saveLocalOnly==='function')saveLocalOnly()}}catch(err){console.warn('Blooming account/profile reconciliation',err)}return result};
-        window.__bloomingCloudPullPatch=true;
-      }
-    }catch(err){console.warn('Blooming cloud patches',err)}
-  }
-  function refreshRemote(){try{if(navigator.onLine&&typeof CLOUD_ON!=='undefined'&&CLOUD_ON&&typeof cloudPull==='function')cloudPull()}catch(e){console.warn('Blooming remote refresh',e)}}
-  function run(){bindForgotCode();placeLotus();hideInvalidShare();repairProfileMedia();fixPageScroll();installProfilePersistence();installCloudPatches()}
-  window.BloomingDirectFixes={closeProfileManager:closeProfileManager,placeLotus:placeLotus,bindForgotCode:bindForgotCode,repairProfileMedia:repairProfileMedia,fixPageScroll:fixPageScroll};
-  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('#manageProfilesModal .close,#manageProfilesModal .modal-close,#manageProfilesModal [data-close-modal],#profileManagerModal .close');if(b){e.preventDefault();e.stopPropagation();closeProfileManager()}},true);
-  window.addEventListener('online',refreshRemote);
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(refreshRemote,250)});
-  document.addEventListener('DOMContentLoaded',function(){run();setTimeout(run,500);setTimeout(run,1500);setTimeout(run,3000);setTimeout(installProfilePersistence,5000);setTimeout(installCloudPatches,5000)});
-  /* Do not observe the entire document: placeLotus/hideInvalidShare mutate DOM and the old observer could retrigger itself indefinitely. */
-  var queued=false;
-  function scheduleRun(){if(queued)return;queued=true;setTimeout(function(){queued=false;run()},300)}
-  window.addEventListener('blooming:view-rendered',scheduleRun);
-  window.BloomingScheduleFixes=scheduleRun;
+  const $=s=>document.querySelector(s);
+  function closeProfileManager(){['#manageProfilesModal','#profileManagerModal','#manageProfiles','#profilesManager','[data-modal="manage-profiles"]'].forEach(s=>document.querySelectorAll(s).forEach(el=>{el.classList.remove('open','show','active','visible');el.setAttribute('aria-hidden','true');el.style.display='none';}));try{if(typeof closeModal==='function')closeModal('manageProfilesModal')}catch(e){}}
+  function fixScroll(){let st=$('#blooming-scroll-fix');if(!st){st=document.createElement('style');st.id='blooming-scroll-fix';document.head.appendChild(st)}st.textContent=`@media(min-width:701px){html,body{height:100%;overflow:hidden!important}#app{height:100vh!important;overflow:hidden!important}.sh{height:100vh!important;min-height:0!important}.nv{position:sticky!important;top:0!important;height:100vh!important;overflow:hidden!important}.rc{position:sticky!important;top:0!important;height:100vh!important;overflow:auto!important}main{height:100vh!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important}}@media(max-width:700px){html,body{height:auto!important;overflow-x:hidden!important;overflow-y:auto!important}#app,.sh{height:auto!important;min-height:100vh!important;overflow:visible!important}.sh{display:block!important}.nv{position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;height:auto!important;z-index:1000!important;display:flex!important;flex-direction:row!important;justify-content:space-around!important}.nv .lg,.nv .b,.nv .me{display:none!important}.nv a,.nv button.l{flex:1!important;justify-content:center!important;padding:10px 6px!important}.nv a span,.nv button.l span{display:none!important}main{height:auto!important;min-height:100vh!important;overflow:visible!important;padding-bottom:76px!important}.rc{display:none!important}}`}
+  function persistLocal(){try{if(typeof saveLocalOnly==='function')saveLocalOnly()}catch(e){}}
+  async function syncProfile(id){try{if(!id||typeof S==='undefined'||!S.u||!S.u[id])return;if(typeof CLOUD_ON==='undefined'||!CLOUD_ON||typeof SB==='undefined'||!SB)return;const u=S.u[id];let accountId=u.accountId||null;try{const a=typeof currentAccount==='function'?currentAccount():null;if(a&&a.id)accountId=typeof cloudAccountId==='function'?cloudAccountId(a.id):a.id}catch(e){}if(!accountId)return;const row={id:u.id,account_id:accountId,nome:u.nome||'Perfil',username:u.user||'',bio:u.bio||'',loc:u.loc||'',cor:u.cor||'#E8336F',emo:u.emo||'🌸',foto:u.foto||'',capa:u.capa||'',verificado:!!u.verificado,privada:!!u.privada,seg:+u.seg||0,sgd:+u.sgd||0};const r=await SB.from('blooming_profiles').upsert(row,{onConflict:'id'});if(r&&r.error)throw r.error;u.accountId=accountId;persistLocal()}catch(e){console.warn('Blooming profile cloud save failed',e)}}
+  function bindProfileEditor(){if(window.__bloomingEditorFix)return;window.__bloomingEditorFix=true;const oldEdit=window.editU;if(typeof oldEdit==='function'){window.editU=function(id){window.__bloomingEditingProfileId=id||window.S?.me||null;return oldEdit.apply(this,arguments)}}document.addEventListener('click',function(e){const save=e.target.closest&&e.target.closest('#md [data-m="s"]');if(!save)return;const id=window.__bloomingEditingProfileId||window.S?.me;setTimeout(()=>syncProfile(id),350)},true)}
+  async function pullProfiles(){try{if(typeof CLOUD_ON==='undefined'||!CLOUD_ON||typeof SB==='undefined'||!SB||typeof S==='undefined'||!S.u)return;const r=await SB.from('blooming_profiles').select('*');if(r.error||!Array.isArray(r.data))return;r.data.forEach(row=>{const u=S.u[row.id];if(!u)return;u.accountId=row.account_id||u.accountId;if(row.nome!=null)u.nome=row.nome;if(row.username!=null)u.user=row.username;if(row.bio!=null)u.bio=row.bio;if(row.loc!=null)u.loc=row.loc;if(row.cor!=null)u.cor=row.cor;if(row.emo!=null)u.emo=row.emo;if(row.foto!=null)u.foto=row.foto;if(row.capa!=null)u.capa=row.capa;if(row.verificado!=null)u.verificado=!!row.verificado;if(row.privada!=null)u.privada=!!row.privada;if(row.seg!=null)u.seg=+row.seg||0;if(row.sgd!=null)u.sgd=+row.sgd||0});persistLocal();try{if(typeof view==='function')view()}catch(e){}}catch(e){console.warn('Blooming remote profile refresh failed',e)}}
+  function reconcileAccounts(){try{if(!S.accounts||!S.u)return;Object.values(S.accounts).forEach(a=>a.profiles=[]);Object.values(S.u).forEach(u=>{if(!u||!u.accountId)return;if(!S.accounts[u.accountId])S.accounts[u.accountId]={id:u.accountId,nome:u.nome||'Conta',pw:'',profiles:[]};const a=S.accounts[u.accountId];a.profiles=a.profiles||[];if(!a.profiles.includes(u.id))a.profiles.push(u.id)});persistLocal()}catch(e){console.warn('Blooming account reconciliation',e)}}
+  function removeGenericLocalPosts(){try{if(!Array.isArray(S.posts))return;const bad=/^(demo_|test_|seed_|generic_)/i;S.posts=S.posts.filter(p=>{if(!p)return false;if(p.generated===true||p.generic===true||p.demo===true||p.test===true||p.seed===true)return false;if(bad.test(String(p.id||'')))return false;const t=String(p.text||p.t||'').toLowerCase();if(/4\s*horas?.*(costur|fantasia)/i.test(t))return false;return true});persistLocal()}catch(e){console.warn('Blooming generic-post cleanup',e)}}
+  function disableGenericAutomation(){try{if(typeof window.runAutomations!=='function'||window.__bloomingAutomationFix)return;window.__bloomingAutomationFix=true;window.runAutomations=function(){if(typeof S==='undefined'||!S.u)return;Object.values(S.u).forEach(u=>{if(u&&u.xSync&&u.xSync.enabled&&typeof syncXProfile==='function'){const gap=(+u.xSync.interval||5)*60000;if(!u.xSync.lastSync||Date.now()-u.xSync.lastSync>=gap)syncXProfile(u.id,true)}});removeGenericLocalPosts()};removeGenericLocalPosts()}catch(e){console.warn('Blooming automation fix',e)}}
+  function patchCloudPull(){if(typeof window.cloudPull!=='function'||window.__bloomingCloudPullFix)return;window.__bloomingCloudPullFix=true;const old=window.cloudPull;window.cloudPull=async function(){const result=await old.apply(this,arguments);reconcileAccounts();await pullProfiles();removeGenericLocalPosts();return result}}
+  function init(){fixScroll();bindProfileEditor();disableGenericAutomation();patchCloudPull();document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-m="x"]');if(b&&b.closest('#md')){e.preventDefault();e.stopPropagation();try{$('#md').close()}catch(x){}}},true);document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#manageProfilesModal .close,#manageProfilesModal .modal-close,#profileManagerModal .close');if(b){e.preventDefault();e.stopPropagation();closeProfileManager()}},true);setTimeout(()=>{fixScroll();bindProfileEditor();disableGenericAutomation();patchCloudPull()},800);setTimeout(()=>{fixScroll();bindProfileEditor();disableGenericAutomation();patchCloudPull()},2500)}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
