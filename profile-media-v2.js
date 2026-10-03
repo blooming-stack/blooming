@@ -2,6 +2,15 @@
 (function(){
   'use strict';
 
+  /* Keep the left navigation fixed while the center/right content scrolls. */
+  function installLayoutFix(){
+    if(document.getElementById('blooming-layout-fix')) return;
+    var s=document.createElement('style');
+    s.id='blooming-layout-fix';
+    s.textContent='html,body{min-height:100%;overflow-x:hidden}.sh{align-items:start}.nv{position:sticky!important;top:0!important;height:100vh!important;max-height:100vh!important;overflow:hidden!important;align-self:start}.nv>*{flex-shrink:0}.sh>main{min-height:100vh}.rc{position:sticky!important;top:0!important;align-self:start} @media(max-width:900px){.nv{position:sticky!important;top:0!important;height:100vh!important;overflow:hidden!important}}';
+    document.head.appendChild(s);
+  }
+
   function codeFor(post){
     if(!post) return '';
     if(post.postCode) return String(post.postCode);
@@ -42,9 +51,7 @@
     return false;
   }
 
-  /* Supabase is authoritative for the profile picker. A failed/empty remote
-     response never destroys the local list; this prevents an old client from
-     deleting profiles just because a query temporarily returned no rows. */
+  /* Supabase is authoritative for the profile picker. */
   async function syncPickerProfilesFromCloud(){
     if(typeof CLOUD_ON==='undefined'||!CLOUD_ON||!window.SB)return false;
     try{
@@ -53,9 +60,6 @@
       var res=await SB.from('blooming_profiles').select('*').eq('account_id',remoteAccountId).order('created_at',{ascending:true});
       if(res.error)throw res.error;
       var rows=Array.isArray(res.data)?res.data:[];
-      /* Only replace the account list after a successful query. An empty result
-         is authoritative for a genuinely empty account, but does not delete
-         S.u records or profile data. */
       S.accounts=S.accounts||{};S.u=S.u||{};
       var local=S.accounts[a.id]||a;
       local.profiles=rows.map(function(p){
@@ -68,13 +72,11 @@
       return true;
     }catch(e){console.warn('Blooming picker Supabase refresh',e);return false;}
   }
-
-  async function refreshPicker(){
-    try{await syncPickerProfilesFromCloud();if(typeof R==='function')R();}catch(e){console.warn(e)}
-  }
+  async function refreshPicker(){try{await syncPickerProfilesFromCloud();if(typeof R==='function')R();}catch(e){console.warn(e)}}
   window.BloomingRefreshProfilePicker=refreshPicker;
 
   function install(){
+    installLayoutFix();
     if(window.__bloomingPickerCloudSourceInstalled)return;
     if(typeof window.unlockScreen==='function'){
       var original=window.unlockScreen;
