@@ -18,13 +18,12 @@ function routes(){document.addEventListener('click',e=>{const a=e.target.closest
 function visual(){let s=q('#blooming-final-visual-style');if(!s){s=document.createElement('style');s.id='blooming-final-visual-style';document.head.appendChild(s)}s.textContent=`/* Media: full presentation without decorative borders. */
 .po img,.po video,.po iframe,.po .media,.po .media img,.po .media video,.po .post-media,.po .post-media img,.po .post-media video{border:0!important;outline:0!important;box-shadow:none!important;border-radius:0!important}
 .po .media,.po .post-media{overflow:hidden!important}
-/* Pinned post keeps the exact same geometry as normal posts. */
-.po,.po.is-pinned,.po[data-pinned="true"]{box-sizing:border-box!important}
-.po.is-pinned{margin-left:0!important;margin-right:0!important;padding-left:0!important;padding-right:0!important}
-.po.is-pinned .bd{min-width:0!important;flex:1 1 auto!important;position:relative!important}
-/* Lotus keeps its original SVG and size; aligned with the author/date row on the right. */
-.po.is-pinned .bd>.pinned-lotus{position:absolute!important;top:12px!important;right:0!important;left:auto!important;bottom:auto!important;z-index:100!important;margin:0!important;padding:0!important;transform:none!important}
-.po.is-pinned>.pinned-lotus{position:absolute!important;top:24px!important;right:16px!important;left:auto!important;bottom:auto!important;z-index:100!important;margin:0!important;padding:0!important;transform:none!important}
+/* Pinned post uses the exact same outer box metrics as ordinary posts. */
+.po.is-pinned,.po[data-pinned="true"]{box-sizing:border-box!important;margin:0!important;padding:0!important;border:0!important}
+.po.is-pinned .bd,.po[data-pinned="true"] .bd{min-width:0!important;flex:1 1 auto!important;position:relative!important}
+/* Lotus: same original SVG/size, aligned with the name/date line, slightly below the card top. */
+.po.is-pinned .bd>.pinned-lotus,.po[data-pinned="true"] .bd>.pinned-lotus{position:absolute!important;top:18px!important;right:0!important;left:auto!important;bottom:auto!important;z-index:100!important;margin:0!important;padding:0!important;transform:none!important}
+.po.is-pinned>.pinned-lotus,.po[data-pinned="true"]>.pinned-lotus{position:absolute!important;top:30px!important;right:16px!important;left:auto!important;bottom:auto!important;z-index:100!important;margin:0!important;padding:0!important;transform:none!important}
 `}
 function init(){profileSync();cloudGuard();purgeGenerics();profileLinks();routes();visual();setTimeout(()=>{cloudGuard();purgeGenerics();profileLinks();visual();navigate()},1000)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
