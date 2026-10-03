@@ -1,166 +1,94 @@
-/* Blooming compatibility helpers.
-   This file is loaded by index.html. It deliberately does not rewrite avatar/cover
-   elements globally, because profile media belongs to the individual profile.
-
-   Deep post links:
-     /@username/post/CODE
-   A stable short code is stored on each post as postCode. Older posts get a
-   deterministic fallback from their existing id without changing the post id.
-*/
+/* Blooming compatibility / synchronization helpers. */
 (function(){
   'use strict';
 
   function codeFor(post){
     if(!post) return '';
     if(post.postCode) return String(post.postCode);
-    var raw=String(post.id||'');
-    if(!raw) return '';
-    var h=0;
-    for(var i=0;i<raw.length;i++) h=((h<<5)-h+raw.charCodeAt(i))|0;
-    h=Math.abs(h).toString(36).toUpperCase();
-    return ('000000'+h).slice(-6);
+    var raw=String(post.id||''); if(!raw) return '';
+    var h=0; for(var i=0;i<raw.length;i++) h=((h<<5)-h+raw.charCodeAt(i))|0;
+    return ('000000'+Math.abs(h).toString(36).toUpperCase()).slice(-6);
   }
-
   function usernameFor(post){
-    try{
-      if(window.U){ var u=U(post.u); if(u&&u.user) return String(u.user); }
-    }catch(_){ }
+    try{ if(window.U){var u=U(post.u);if(u&&u.user)return String(u.user).replace(/^@/,'');} }catch(_){ }
     return String(post&&post.username||'').replace(/^@/,'');
   }
+  function siteBase(){ return location.origin + '/blooming'; }
+  function profileUrl(user){ user=String(user||'').replace(/^@/,''); return user?siteBase()+'/perfil/'+encodeURIComponent(user):''; }
+  function postUrl(post){ var user=usernameFor(post),code=codeFor(post); return user&&code?siteBase()+'/perfil/'+encodeURIComponent(user)+'/post/'+encodeURIComponent(code):''; }
+  function ensurePostCode(post){if(!post)return '';if(!post.postCode)post.postCode=codeFor(post);return post.postCode;}
 
-  function postUrl(post){
-    var user=usernameFor(post), code=codeFor(post);
-    if(!user||!code) return '';
-    var base=location.origin+location.pathname;
-    return base.replace(/\/$/,'')+'/@'+encodeURIComponent(user)+'/post/'+encodeURIComponent(code);
+  window.BloomingProfileMediaV2={restore:function(){},capture:function(){},saveVisible:function(){},postCode:codeFor,postUrl:postUrl,profileUrl:profileUrl,ensurePostCode:ensurePostCode};
+  window.BloomingPostLinks={code:codeFor,url:postUrl,profile:profileUrl,ensure:ensurePostCode};
+
+  function findDeep(){
+    var p=String(location.pathname||'');
+    var m=p.match(/\/blooming\/perfil\/([^/]+)(?:\/post\/([^/?#]+))?/i);
+    if(!m)return null;
+    return {user:decodeURIComponent(m[1]),code:m[2]?decodeURIComponent(m[2]):null};
   }
-
-  function ensurePostCode(post){
-    if(!post) return '';
-    if(!post.postCode) post.postCode=codeFor(post);
-    return post.postCode;
-  }
-
-  function findDeepPost(){
-    var path=String(location.pathname||'');
-    var m=path.match(/\/@([^/]+)\/post\/([^/?#]+)/);
-    if(!m) return null;
-    return {user:decodeURIComponent(m[1]),code:decodeURIComponent(m[2])};
-  }
-
-  function openDeepPost(){
+  function openDeep(){
     try{
-      var q=findDeepPost();
-      if(!q || !window.S || !Array.isArray(S.posts)) return false;
-      var p=S.posts.find(function(x){
-        var code=String(x.postCode||codeFor(x));
-        return code===q.code && String(usernameFor(x)).toLowerCase()===q.user.toLowerCase();
-      });
-      if(!p) return false;
-      if(typeof window.openPost==='function'){ window.openPost(p.id); return true; }
-      if(typeof window.viewPost==='function'){ window.viewPost(p.id); return true; }
-      location.hash='#/post/'+encodeURIComponent(p.id);
-      return true;
-    }catch(e){ console.warn('Blooming deep post link',e); return false; }
+      var q=findDeep();if(!q||!window.S)return false;
+      if(!q.code){
+        var target=Object.values(S.u||{}).find(function(u){return String(u&&u.user||'').toLowerCase()===q.user.toLowerCase();});
+        if(target&&typeof window.openProfile==='function'){window.openProfile(target.id);return true;}
+        if(target&&typeof window.profilePage==='function'){window.profilePage(target.id);return true;}
+        return false;
+      }
+      var p=(Array.isArray(S.posts)?S.posts:[]).find(function(x){return String(x.postCode||codeFor(x))===q.code&&usernameFor(x).toLowerCase()===q.user.toLowerCase();});
+      if(p&&typeof window.openPost==='function'){window.openPost(p.id);return true;}
+    }catch(e){console.warn('Blooming deep link',e)}
+    return false;
   }
 
-  function patchShareLink(){
-    try{
-      if(!window.S || !Array.isArray(S.posts)) return;
-      S.posts.forEach(ensurePostCode);
-    }catch(_){ }
-  }
-
-  window.BloomingProfileMediaV2={
-    restore:function(){},
-    capture:function(){},
-    saveVisible:function(){},
-    postCode:codeFor,
-    postUrl:postUrl,
-    ensurePostCode:ensurePostCode
-  };
-
-  window.BloomingPostLinks={
-    code:codeFor,
-    url:postUrl,
-    ensure:ensurePostCode
-  };
-
-  /* Profile picker: Supabase is authoritative whenever cloud is connected.
-     Never build the picker from a stale local account.profiles array first. */
+  /* Supabase is authoritative for the profile picker. A failed/empty remote
+     response never destroys the local list; this prevents an old client from
+     deleting profiles just because a query temporarily returned no rows. */
   async function syncPickerProfilesFromCloud(){
-    if(typeof CLOUD_ON==='undefined'||!CLOUD_ON||!window.SB) return false;
+    if(typeof CLOUD_ON==='undefined'||!CLOUD_ON||!window.SB)return false;
     try{
-      var a=typeof currentAccount==='function'?currentAccount():null;
-      if(!a) return false;
-      var remoteAccountId=typeof cloudAccountId==='function'?cloudAccountId(a.id):a.id;
-      if(!remoteAccountId) return false;
-      var res=await SB.from('blooming_profiles').select('*').eq('account_id',remoteAccountId).order('id',{ascending:true});
-      if(res.error) throw res.error;
+      var a=typeof currentAccount==='function'?currentAccount():null;if(!a)return false;
+      var remoteAccountId=typeof cloudAccountId==='function'?cloudAccountId(a.id):a.id;if(!remoteAccountId)return false;
+      var res=await SB.from('blooming_profiles').select('*').eq('account_id',remoteAccountId).order('created_at',{ascending:true});
+      if(res.error)throw res.error;
       var rows=Array.isArray(res.data)?res.data:[];
-      S.accounts=S.accounts||{};
-      var localAccount=S.accounts[a.id]||a;
-      localAccount.profiles=[];
-      S.accounts[a.id]=localAccount;
-      rows.forEach(function(p){
-        if(!p||!p.id) return;
-        var id=String(p.id),old=S.u&&S.u[id]?S.u[id]:{};
-        S.u=S.u||{};
-        S.u[id]=Object.assign({},old,{
-          id:id,
-          nome:p.nome||old.nome||'Perfil',
-          user:String(p.username||old.user||'').replace(/^@/,''),
-          bio:p.bio!=null?p.bio:(old.bio||''),
-          loc:p.loc!=null?p.loc:(old.loc||''),
-          cor:p.cor||old.cor||'#E8336F',
-          emo:p.emo||old.emo||'🌸',
-          foto:p.foto!=null?p.foto:(old.foto||''),
-          capa:p.capa!=null?p.capa:(old.capa||''),
-          verificado:typeof p.verificado==='boolean'?p.verificado:!!old.verificado,
-          privada:typeof p.privada==='boolean'?p.privada:!!old.privada,
-          seg:Number.isFinite(+p.seg)?+p.seg:+old.seg||0,
-          sgd:Number.isFinite(+p.sgd)?+p.sgd:+old.sgd||0,
-          accountId:remoteAccountId
-        });
-        localAccount.profiles.push(id);
+      /* Only replace the account list after a successful query. An empty result
+         is authoritative for a genuinely empty account, but does not delete
+         S.u records or profile data. */
+      S.accounts=S.accounts||{};S.u=S.u||{};
+      var local=S.accounts[a.id]||a;
+      local.profiles=rows.map(function(p){
+        var id=String(p.id),old=S.u[id]||{};
+        S.u[id]=Object.assign({},old,{id:id,nome:p.nome||old.nome||'Perfil',user:String(p.username||old.user||'').replace(/^@/,''),bio:p.bio!=null?p.bio:(old.bio||''),loc:p.loc!=null?p.loc:(old.loc||''),cor:p.cor||old.cor||'#E8336F',emo:p.emo||old.emo||'🌸',foto:p.foto!=null?p.foto:(old.foto||''),capa:p.capa!=null?p.capa:(old.capa||''),verificado:!!p.verificado,privada:!!p.privada,seg:+p.seg||0,sgd:+p.sgd||0,accountId:remoteAccountId});
+        return id;
       });
-      localAccount.profiles=[...new Set(localAccount.profiles)];
-      if(typeof saveLocalOnly==='function') saveLocalOnly();
+      S.accounts[a.id]=local;
+      if(typeof saveLocalOnly==='function')saveLocalOnly();
       return true;
-    }catch(err){
-      console.warn('Blooming picker Supabase refresh',err);
-      return false;
+    }catch(e){console.warn('Blooming picker Supabase refresh',e);return false;}
+  }
+
+  async function refreshPicker(){
+    try{await syncPickerProfilesFromCloud();if(typeof R==='function')R();}catch(e){console.warn(e)}
+  }
+  window.BloomingRefreshProfilePicker=refreshPicker;
+
+  function install(){
+    if(window.__bloomingPickerCloudSourceInstalled)return;
+    if(typeof window.unlockScreen==='function'){
+      var original=window.unlockScreen;
+      window.unlockScreen=async function(ok){
+        if(ok&&typeof CLOUD_ON!=='undefined'&&CLOUD_ON&&window.SB)await refreshPicker();
+        return original.apply(this,arguments);
+      };
+      window.__bloomingPickerCloudSourceInstalled=true;
     }
   }
-
-  function installPickerCloudSource(){
-    if(window.__bloomingPickerCloudSourceInstalled) return;
-    if(typeof window.unlockScreen!=='function') return;
-    var originalUnlock=window.unlockScreen;
-    window.unlockScreen=async function(ok){
-      if(ok && typeof CLOUD_ON!=='undefined' && CLOUD_ON && window.SB){
-        try{
-          var host=document.getElementById('app');
-          if(host) host.innerHTML='<div class="lo"><h1>Quem está usando?</h1><p class="mut">Sincronizando perfis…</p></div>';
-          await syncPickerProfilesFromCloud();
-        }catch(err){console.warn('Blooming picker refresh',err)}
-      }
-      return originalUnlock.apply(this,arguments);
-    };
-    window.__bloomingPickerCloudSourceInstalled=true;
-  }
-
-  function pickerBoot(){
-    installPickerCloudSource();
-    setTimeout(installPickerCloudSource,500);
-    setTimeout(installPickerCloudSource,1500);
-  }
-
   function boot(){
-    patchShareLink();
-    pickerBoot();
-    setTimeout(openDeepPost,0);
+    install();setTimeout(install,500);setTimeout(install,1500);
+    if(window.S&&Array.isArray(S.posts))S.posts.forEach(ensurePostCode);
+    setTimeout(openDeep,50);
   }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot);
-  else boot();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
