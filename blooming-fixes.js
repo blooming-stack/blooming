@@ -35,3 +35,21 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 /* Load definitive fixes after the legacy fixes, without replacing index.html. */
 (function(){var s=document.createElement('script');s.src='/blooming/blooming-final-fixes.js?v=2';s.async=false;document.head.appendChild(s)})();
+/* Definitive override for the pinned post and GitHub Pages routing. */
+(function(){'use strict';
+function addStyle(){if(document.getElementById('blooming-definitive-override'))return;var s=document.createElement('style');s.id='blooming-definitive-override';s.textContent=`
+/* PINNED: identical outer box to normal posts; lotus at author/date row, right side. */
+.po.is-pinned,.po[data-pinned="true"]{position:relative!important;margin:0!important;padding-left:0!important;padding-right:0!important;border-left:0!important;border-right:0!important;box-sizing:border-box!important}
+.po.is-pinned .bd,.po[data-pinned="true"] .bd{position:relative!important;min-width:0!important;flex:1 1 auto!important}
+.po.is-pinned .pinned-lotus,.po[data-pinned="true"] .pinned-lotus{left:auto!important;right:12px!important;top:12px!important;bottom:auto!important;transform:none!important;width:30px!important;height:30px!important;margin:0!important;padding:0!important}
+@media(max-width:700px){.po.is-pinned .pinned-lotus,.po[data-pinned="true"] .pinned-lotus{right:10px!important;top:10px!important;width:26px!important;height:26px!important}.po.is-pinned,.po[data-pinned="true"]{padding-left:0!important}}
+/* MEDIA: no border/radius/shadow and preserve natural full media. */
+.po img,.po video,.po .media,.po .media img,.po .media video,.po .gallery,.po .gallery img,.po .gallery video{border:0!important;border-radius:0!important;box-shadow:none!important;outline:0!important}
+`;
+document.head.appendChild(s)}
+function route(){var p=location.pathname.replace(/^\/+/,'');if(!p.startsWith('blooming/'))return;var raw=p.slice('blooming/'.length).replace(/\/+$/,'');if(!raw||raw==='index.html'||raw==='home'){try{if(typeof S!=='undefined'){S.route='home';if(typeof view==='function')view()}}catch(e){}return}if(raw==='login'){try{if(typeof S!=='undefined'){S.route='login';if(typeof view==='function')view()}}catch(e){}return}if(raw==='configuracoes'||raw==='configuracoes.html'){try{if(typeof S!=='undefined'){S.route='settings';if(typeof view==='function')view()}}catch(e){}return}if(raw==='novapublicacao'){try{if(typeof S!=='undefined'){S.route='newpost';if(typeof view==='function')view()}}catch(e){}return}if(raw==='notificacoes'){try{if(typeof S!=='undefined'){S.route='notifications';if(typeof view==='function')view()}}catch(e){}return}if(raw==='mensagens'){try{if(typeof S!=='undefined'){S.route='messages';if(typeof view==='function')view()}}catch(e){}return}if(raw==='comunidades'){try{if(typeof S!=='undefined'){S.route='communities';if(typeof view==='function')view()}}catch(e){}return}var parts=raw.split('/').filter(Boolean);var username=decodeURIComponent(parts[0]).replace(/^@/,'').toLowerCase();try{if(typeof S==='undefined'||!S.u)return;var u=Object.values(S.u).find(function(x){return String(x.user||x.username||'').replace(/^@/,'').toLowerCase()===username});if(!u)return;S.me=u.id;if(parts[1]==='post'&&parts[2]){S.route='post';S.post=parts[2]}else{S.route='perfil'}if(typeof view==='function')view()}catch(e){console.warn('Blooming route',e)}}
+function links(){document.querySelectorAll('a[href]').forEach(function(a){var h=a.getAttribute('href')||'';if(/^#\/?$/.test(h)||/^#\/?home$/.test(h))a.setAttribute('href','/blooming/home')})}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){addStyle();setTimeout(route,300);links()});else{addStyle();setTimeout(route,300);links()}
+window.addEventListener('popstate',route);window.addEventListener('hashchange',route);
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var h=a.getAttribute('href')||'';if(h==='#'||h==='#/'||h==='#/home'||h==='/blooming/'||h==='/blooming'){e.preventDefault();history.pushState({},'', '/blooming/home');route()}},true);
+})();
