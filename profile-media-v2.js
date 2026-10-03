@@ -1,96 +1,28 @@
 /* Blooming compatibility / synchronization helpers. */
 (function(){
-  'use strict';
-
-  /* Keep the left navigation fixed while the center/right content scrolls. */
-  function installLayoutFix(){
-    if(document.getElementById('blooming-layout-fix')) return;
-    var s=document.createElement('style');
-    s.id='blooming-layout-fix';
-    s.textContent='html,body{min-height:100%;overflow-x:hidden}.sh{align-items:start}.nv{position:sticky!important;top:0!important;height:100vh!important;max-height:100vh!important;overflow:hidden!important;align-self:start}.nv>*{flex-shrink:0}.sh>main{min-height:100vh}.rc{position:sticky!important;top:0!important;align-self:start} @media(max-width:900px){.nv{position:sticky!important;top:0!important;height:100vh!important;overflow:hidden!important}}';
-    document.head.appendChild(s);
-  }
-
-  function codeFor(post){
-    if(!post) return '';
-    if(post.postCode) return String(post.postCode);
-    var raw=String(post.id||''); if(!raw) return '';
-    var h=0; for(var i=0;i<raw.length;i++) h=((h<<5)-h+raw.charCodeAt(i))|0;
-    return ('000000'+Math.abs(h).toString(36).toUpperCase()).slice(-6);
-  }
-  function usernameFor(post){
-    try{ if(window.U){var u=U(post.u);if(u&&u.user)return String(u.user).replace(/^@/,'');} }catch(_){ }
-    return String(post&&post.username||'').replace(/^@/,'');
-  }
-  function siteBase(){ return location.origin + '/blooming'; }
-  function profileUrl(user){ user=String(user||'').replace(/^@/,''); return user?siteBase()+'/perfil/'+encodeURIComponent(user):''; }
-  function postUrl(post){ var user=usernameFor(post),code=codeFor(post); return user&&code?siteBase()+'/perfil/'+encodeURIComponent(user)+'/post/'+encodeURIComponent(code):''; }
-  function ensurePostCode(post){if(!post)return '';if(!post.postCode)post.postCode=codeFor(post);return post.postCode;}
-
-  window.BloomingProfileMediaV2={restore:function(){},capture:function(){},saveVisible:function(){},postCode:codeFor,postUrl:postUrl,profileUrl:profileUrl,ensurePostCode:ensurePostCode};
-  window.BloomingPostLinks={code:codeFor,url:postUrl,profile:profileUrl,ensure:ensurePostCode};
-
-  function findDeep(){
-    var p=String(location.pathname||'');
-    var m=p.match(/\/blooming\/perfil\/([^/]+)(?:\/post\/([^/?#]+))?/i);
-    if(!m)return null;
-    return {user:decodeURIComponent(m[1]),code:m[2]?decodeURIComponent(m[2]):null};
-  }
-  function openDeep(){
-    try{
-      var q=findDeep();if(!q||!window.S)return false;
-      if(!q.code){
-        var target=Object.values(S.u||{}).find(function(u){return String(u&&u.user||'').toLowerCase()===q.user.toLowerCase();});
-        if(target&&typeof window.openProfile==='function'){window.openProfile(target.id);return true;}
-        if(target&&typeof window.profilePage==='function'){window.profilePage(target.id);return true;}
-        return false;
-      }
-      var p=(Array.isArray(S.posts)?S.posts:[]).find(function(x){return String(x.postCode||codeFor(x))===q.code&&usernameFor(x).toLowerCase()===q.user.toLowerCase();});
-      if(p&&typeof window.openPost==='function'){window.openPost(p.id);return true;}
-    }catch(e){console.warn('Blooming deep link',e)}
-    return false;
-  }
-
-  /* Supabase is authoritative for the profile picker. */
-  async function syncPickerProfilesFromCloud(){
-    if(typeof CLOUD_ON==='undefined'||!CLOUD_ON||!window.SB)return false;
-    try{
-      var a=typeof currentAccount==='function'?currentAccount():null;if(!a)return false;
-      var remoteAccountId=typeof cloudAccountId==='function'?cloudAccountId(a.id):a.id;if(!remoteAccountId)return false;
-      var res=await SB.from('blooming_profiles').select('*').eq('account_id',remoteAccountId).order('created_at',{ascending:true});
-      if(res.error)throw res.error;
-      var rows=Array.isArray(res.data)?res.data:[];
-      S.accounts=S.accounts||{};S.u=S.u||{};
-      var local=S.accounts[a.id]||a;
-      local.profiles=rows.map(function(p){
-        var id=String(p.id),old=S.u[id]||{};
-        S.u[id]=Object.assign({},old,{id:id,nome:p.nome||old.nome||'Perfil',user:String(p.username||old.user||'').replace(/^@/,''),bio:p.bio!=null?p.bio:(old.bio||''),loc:p.loc!=null?p.loc:(old.loc||''),cor:p.cor||old.cor||'#E8336F',emo:p.emo||old.emo||'🌸',foto:p.foto!=null?p.foto:(old.foto||''),capa:p.capa!=null?p.capa:(old.capa||''),verificado:!!p.verificado,privada:!!p.privada,seg:+p.seg||0,sgd:+p.sgd||0,accountId:remoteAccountId});
-        return id;
-      });
-      S.accounts[a.id]=local;
-      if(typeof saveLocalOnly==='function')saveLocalOnly();
-      return true;
-    }catch(e){console.warn('Blooming picker Supabase refresh',e);return false;}
-  }
-  async function refreshPicker(){try{await syncPickerProfilesFromCloud();if(typeof R==='function')R();}catch(e){console.warn(e)}}
-  window.BloomingRefreshProfilePicker=refreshPicker;
-
-  function install(){
-    installLayoutFix();
-    if(window.__bloomingPickerCloudSourceInstalled)return;
-    if(typeof window.unlockScreen==='function'){
-      var original=window.unlockScreen;
-      window.unlockScreen=async function(ok){
-        if(ok&&typeof CLOUD_ON!=='undefined'&&CLOUD_ON&&window.SB)await refreshPicker();
-        return original.apply(this,arguments);
-      };
-      window.__bloomingPickerCloudSourceInstalled=true;
-    }
-  }
-  function boot(){
-    install();setTimeout(install,500);setTimeout(install,1500);
-    if(window.S&&Array.isArray(S.posts))S.posts.forEach(ensurePostCode);
-    setTimeout(openDeep,50);
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+'use strict';
+function installLayoutFix(){if(document.getElementById('blooming-layout-fix'))return;var s=document.createElement('style');s.id='blooming-layout-fix';s.textContent='html,body{min-height:100%;overflow-x:hidden}.sh{align-items:start}.nv{position:sticky!important;top:0!important;height:100vh!important;max-height:100vh!important;overflow:hidden!important;align-self:start!important}.nv>*{flex-shrink:0}.sh>main{min-height:100vh}.rc{align-self:start!important}';document.head.appendChild(s)}
+function codeFor(post){if(!post)return '';if(post.postCode)return String(post.postCode);var raw=String(post.id||'');if(!raw)return '';var h=0;for(var i=0;i<raw.length;i++)h=((h<<5)-h+raw.charCodeAt(i))|0;return('000000'+Math.abs(h).toString(36).toUpperCase()).slice(-6)}
+function usernameFor(post){try{if(window.U){var u=U(post.u);if(u&&u.user)return String(u.user).replace(/^@/,'')}}catch(_){}return String(post&&post.username||'').replace(/^@/,'')}
+function siteBase(){return location.origin+'/blooming'}
+function cleanUser(user){return String(user||'').replace(/^@/,'').trim()}
+function profileUrl(user){user=cleanUser(user);return user?siteBase()+'/perfil/'+encodeURIComponent(user):''}
+function postUrl(post){var user=usernameFor(post),code=codeFor(post);return user&&code?siteBase()+'/perfil/'+encodeURIComponent(user)+'/post/'+encodeURIComponent(code):''}
+function ensurePostCode(post){if(!post)return '';if(!post.postCode)post.postCode=codeFor(post);return post.postCode}
+window.BloomingProfileMediaV2={restore:function(){},capture:function(){},saveVisible:function(){},postCode:codeFor,postUrl:postUrl,profileUrl:profileUrl,ensurePostCode:ensurePostCode};window.BloomingPostLinks={code:codeFor,url:postUrl,profile:profileUrl,ensure:ensurePostCode};
+function rewriteBloomingProfileLinks(root){try{root=root||document;root.querySelectorAll('a[href]').forEach(function(a){var href=a.getAttribute('href')||'',m=href.match(/\/blooming\/(?:profile|perfil)\/([^/?#]+)/i);if(!m)return;var value=decodeURIComponent(m[1]),target=null;if(window.S&&S.u)target=Object.values(S.u).find(function(u){return String(u&&u.id||'')===value||cleanUser(u&&u.user).toLowerCase()===value.toLowerCase()});var user=target&&target.user?cleanUser(target.user):value;if(user)a.setAttribute('href',profileUrl(user))})}catch(e){console.warn('Blooming profile URL rewrite',e)}}
+var XKEY='blooming_x_offline_imports_v1';function readXQueue(){try{return JSON.parse(localStorage.getItem(XKEY)||'[]')}catch(_){return[]}}function writeXQueue(v){try{localStorage.setItem(XKEY,JSON.stringify(v||[]));return true}catch(_){return false}}
+function xUrlInfo(value){var s=String(value||'').trim(),m=s.match(/https?:\/\/(?:www\.)?(?:x\.com|twitter\.com)\/([^/?#]+)\/status\/(\d+)/i);return m?{url:s,username:m[1],statusId:m[2]}:null}
+function normalizeImportedPost(p){if(!p||typeof p!=='object')return null;var x=p.xUrl||p.url||p.link||'',info=xUrlInfo(x),out=Object.assign({},p);if(info){out.xUrl=info.url;out.xUsername=info.username;out.xStatusId=info.statusId;out.source='x'}if(!out.postCode)out.postCode=codeFor(out);if(!Array.isArray(out.media)){var media=[];if(out.video||out.videoUrl)media.push({type:'video',url:out.video||out.videoUrl});if(out.image||out.imageUrl)media.push({type:'image',url:out.image||out.imageUrl});out.media=media}return out}
+function queueXImport(input){var info=xUrlInfo(input);if(!info)throw new Error('Cole um link de post do X no formato https://x.com/usuario/status/ID');var q=readXQueue();if(!q.some(function(x){return x.xStatusId===info.statusId}))q.push({xUrl:info.url,xUsername:info.username,xStatusId:info.statusId,source:'x',queuedAt:new Date().toISOString()});writeXQueue(q);return q[q.length-1]}
+function importXJson(input){var data=typeof input==='string'?JSON.parse(input):input,list=Array.isArray(data)?data:(Array.isArray(data.posts)?data.posts:[data]),q=readXQueue();list.map(normalizeImportedPost).filter(Boolean).forEach(function(p){var i=q.findIndex(function(x){return x.xStatusId&&p.xStatusId&&x.xStatusId===p.xStatusId});if(i>=0)q[i]=Object.assign({},q[i],p);else q.push(p)});writeXQueue(q);return q}
+window.BloomingXSync={parse:xUrlInfo,queue:queueXImport,importJSON:importXJson,pending:function(){return readXQueue()},exportJSON:function(){return JSON.stringify(readXQueue(),null,2)},clear:function(){localStorage.removeItem(XKEY)}};
+function enhanceMedia(root){try{root=root||document;root.querySelectorAll('a[href]').forEach(function(a){var href=a.href||'';if(!/\.(mp4|webm|mov|m4v)(?:[?#].*)?$/i.test(href)||a.dataset.bloomingMediaEnhanced)return;var v=document.createElement('video');v.controls=true;v.playsInline=true;v.preload='metadata';v.src=href;v.style.cssText='max-width:100%;border-radius:16px;display:block';a.replaceWith(v);v.dataset.bloomingMediaEnhanced='1'});root.querySelectorAll('img,video').forEach(function(el){if(el.dataset.bloomingExpand)return;el.dataset.bloomingExpand='1';el.addEventListener('click',function(e){if(e.target.closest('button,a'))return;var src=el.currentSrc||el.src;if(!src)return;var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:99999;background:#000e;display:grid;place-items:center;padding:20px;cursor:zoom-out';var clone=el.cloneNode(true);clone.style.cssText='max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain';if(clone.tagName==='VIDEO'){clone.controls=true}ov.appendChild(clone);ov.onclick=function(){ov.remove()};document.body.appendChild(ov)},{passive:true})})}catch(e){console.warn('Blooming media enhancement',e)}}
+window.BloomingEnhanceMedia=enhanceMedia;
+function findDeep(){var p=String(location.pathname||''),m=p.match(/\/blooming\/perfil\/([^/]+)(?:\/post\/([^/?#]+))?/i);return m?{user:decodeURIComponent(m[1]),code:m[2]?decodeURIComponent(m[2]):null}:null}
+function openDeep(){try{var q=findDeep();if(!q||!window.S)return false;if(!q.code){var target=Object.values(S.u||{}).find(function(u){return cleanUser(u&&u.user).toLowerCase()===q.user.toLowerCase()});if(target&&typeof window.openProfile==='function'){window.openProfile(target.id);return true}if(target&&typeof window.profilePage==='function'){window.profilePage(target.id);return true}return false}var p=(Array.isArray(S.posts)?S.posts:[]).find(function(x){return String(x.postCode||codeFor(x))===q.code&&usernameFor(x).toLowerCase()===q.user.toLowerCase()});if(p&&typeof window.openPost==='function'){window.openPost(p.id);return true}}catch(e){console.warn('Blooming deep link',e)}return false}
+async function syncPickerProfilesFromCloud(){if(typeof CLOUD_ON==='undefined'||!CLOUD_ON||!window.SB)return false;try{var a=typeof currentAccount==='function'?currentAccount():null;if(!a)return false;var remoteAccountId=typeof cloudAccountId==='function'?cloudAccountId(a.id):a.id;if(!remoteAccountId)return false;var res=await SB.from('blooming_profiles').select('*').eq('account_id',remoteAccountId).order('created_at',{ascending:true});if(res.error)throw res.error;var rows=Array.isArray(res.data)?res.data:[];S.accounts=S.accounts||{};S.u=S.u||{};var local=S.accounts[a.id]||a;local.profiles=rows.map(function(p){var id=String(p.id),old=S.u[id]||{};S.u[id]=Object.assign({},old,{id:id,nome:p.nome||old.nome||'Perfil',user:String(p.username||old.user||'').replace(/^@/,''),bio:p.bio!=null?p.bio:(old.bio||''),loc:p.loc!=null?p.loc:(old.loc||''),cor:p.cor||old.cor||'#E8336F',emo:p.emo||old.emo||'🌸',foto:p.foto!=null?p.foto:(old.foto||''),capa:p.capa!=null?p.capa:(old.capa||''),verificado:!!p.verificado,privada:!!p.privada,seg:+p.seg||0,sgd:+p.sgd||0,accountId:remoteAccountId});return id});S.accounts[a.id]=local;if(typeof saveLocalOnly==='function')saveLocalOnly();return true}catch(e){console.warn('Blooming picker Supabase refresh',e);return false}}
+async function refreshPicker(){try{await syncPickerProfilesFromCloud();if(typeof R==='function')R()}catch(e){console.warn(e)}}window.BloomingRefreshProfilePicker=refreshPicker;
+function install(){installLayoutFix();if(typeof window.unlockScreen==='function'&&!window.__bloomingPickerCloudSourceInstalled){var original=window.unlockScreen;window.unlockScreen=async function(ok){if(ok&&typeof CLOUD_ON!=='undefined'&&CLOUD_ON&&window.SB)await refreshPicker();return original.apply(this,arguments)};window.__bloomingPickerCloudSourceInstalled=true}rewriteBloomingProfileLinks(document);enhanceMedia(document);if(window.MutationObserver&&!window.__bloomingMediaObserver){var mo=new MutationObserver(function(m){m.forEach(function(x){Array.prototype.forEach.call(x.addedNodes||[],function(n){if(n.nodeType===1){rewriteBloomingProfileLinks(n);enhanceMedia(n)}})})});mo.observe(document.body,{childList:true,subtree:true});window.__bloomingMediaObserver=mo}}
+function boot(){install();setTimeout(install,500);setTimeout(install,1500);if(window.S&&Array.isArray(S.posts))S.posts.forEach(ensurePostCode);setTimeout(openDeep,50)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
