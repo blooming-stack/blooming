@@ -70,7 +70,7 @@ main{border-left:1px solid var(--line);border-right:1px solid var(--line);min-he
 .cms{margin-top:8px;padding:10px;background:var(--card);border-radius:14px;border:1px solid var(--line)}.cms p{margin:0 0 8px}.cms .r{display:flex;gap:8px}.cms input{flex:1;border:1.5px solid var(--line);border-radius:999px;padding:7px 12px;background:var(--bg)}
 .bn{height:150px;background-size:cover;background-position:center;position:relative;overflow:hidden}.bn img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}.pf .top>div:first-child .av{width:104px!important;height:104px!important}.pf{padding:0 16px 14px;position:relative}.pf .av{margin-top:-46px;border:4px solid var(--bg)}.pf .top{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;flex-wrap:wrap}
 .st{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}.st b{color:var(--ink)}
-.rc{padding:14px 20px;position:sticky;top:0;height:100vh;overflow:auto}.bx{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:14px}.bx h2{font-size:1.15rem;margin-bottom:8px}
+.rc{padding:14px 20px;position:sticky;top:0;height:auto;max-height:none;overflow:visible}.bx{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:14px}.bx h2{font-size:1.15rem;margin-bottom:8px}
 .tr{display:block;padding:8px 0}.tr b{display:block}.us{display:flex;gap:10px;align-items:center;padding:8px 0}.us>div:nth-child(2){flex:1;min-width:0}
 .cd{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}.cd button{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
 .lo{max-width:460px;margin:0 auto;padding:40px 20px}.lo h1{font-size:2.6rem;font-weight:800}
@@ -105,7 +105,7 @@ dialog{border:0;border-radius:20px;padding:20px;background:var(--card);color:var
 <style>
 .community-grid{display:grid;gap:12px}.bx .th{gap:12px}.bx{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0}.bx h2{margin:0 0 10px}
 </style>
-<link rel="icon" type="image/svg+xml" href="./blooming-logo.svg"><script defer src="./blooming-fixes.js?v=2"></script><!-- BLOOMING_SAFE_PATCH_V2 --><script defer src="./profile-media-v3.js?v=3"></script><script defer src="./profile-media-v4.js?v=4"></script></head><body>
+<link rel="icon" type="image/svg+xml" href="./blooming-logo.svg"><script defer src="./blooming-fixes.js?v=2"></script><!-- BLOOMING_SAFE_PATCH_V2 --></head><body>
 <div id="app"><div class="boot-fallback" role="status" aria-live="polite">
   <div class="flower-glow" aria-hidden="true"></div>
   <div class="flower-field" aria-hidden="true">
@@ -253,7 +253,7 @@ function legacyCleanup(){
 function purgeDeletedContent(){S.deletedPosts=Array.isArray(S.deletedPosts)?S.deletedPosts:[];S.deletedMessages=Array.isArray(S.deletedMessages)?S.deletedMessages:[];S.posts=(S.posts||[]).filter(p=>p&&!S.deletedPosts.includes(String(p.id)));Object.keys(S.dm||{}).forEach(k=>{S.dm[k]=(S.dm[k]||[]).filter(m=>!S.deletedMessages.includes(String(m[4]||'')));if(!S.dm[k].length)delete S.dm[k]});}
 // Exclusão solicitada: remove definitivamente perfis chamados Lula e libera @LulaOficial.
 function isLulaProfile(u){if(!u)return false;const nome=String(u.nome||'').replace(/^@/,'').trim().toLowerCase();const user=String(u.user||'').replace(/^@/,'').trim().toLowerCase();return nome==='lula'||user==='lulaoficial';}
-function removeLulaProfilesLocal(){S.deletedProfiles=Array.isArray(S.deletedProfiles)?S.deletedProfiles:[];const ids=new Set(Object.values(S.u||{}).filter(isLulaProfile).map(u=>String(u.id)));Object.values(S.accounts||{}).forEach(a=>{if(Array.isArray(a.profiles))a.profiles=a.profiles.filter(id=>!ids.has(String(id)))});ids.forEach(id=>{S.deletedProfiles.push(id);delete S.u[id];delete S.f[id];Object.keys(S.pinnedPosts||{}).forEach(pid=>{if(pid===id)delete S.pinnedPosts[pid]});});S.deletedProfiles=[...new Set(S.deletedProfiles.map(String))];if(ids.size){S.posts=(S.posts||[]).filter(post=>{if(ids.has(String(post.u))){S.deletedPosts=S.deletedPosts||[];S.deletedPosts.push(String(post.id));return false}return true});Object.keys(S.dm||{}).forEach(k=>{if([...ids].some(id=>k.split('|').includes(id)))delete S.dm[k]});}return ids.size;}
+function removeLulaProfilesLocal(){/* disabled: profiles must never be deleted automatically during sync */return 0;}
 function cloudAccountId(aid){const a=S.accounts&&S.accounts[aid];return a&&a.remoteId||aid}
 function isAnaCloudAccount(a){const n=String(a&&a.nome||'').trim().toLowerCase();return n==='ana laura'||n==='ana'||n.includes('ana laura')}
 async function cloudPull(){
@@ -280,10 +280,12 @@ async function cloudPull(){
   if(Array.isArray(pr.data)){
    S.accounts=S.accounts||{};
    pr.data.forEach(p=>{
-    const remoteUserCleanup=String(p.username||'').replace(/^@/,'').trim().toLowerCase();
-    const remoteNameCleanup=String(p.nome||'').replace(/^@/,'').trim().toLowerCase();
-    if(remoteNameCleanup==='lula'||remoteUserCleanup==='lulaoficial'){S.deletedProfiles=S.deletedProfiles||[];if(!S.deletedProfiles.includes(String(p.id)))S.deletedProfiles.push(String(p.id));return;}
-    if((S.deletedProfiles||[]).includes(String(p.id)))return;
+    // Se o perfil ainda existe no Supabase, ele é a fonte oficial.
+    // Remova um marcador de exclusão local antigo para não fazer o perfil
+    // desaparecer em outro dispositivo.
+    if(Array.isArray(S.deletedProfiles)){
+      S.deletedProfiles=S.deletedProfiles.filter(x=>String(x)!==String(p.id));
+    }
     // Reaproveita um perfil local com o mesmo @username antes de criar uma entrada
     // com o ID técnico do banco. Isso evita que outras pessoas apareçam como códigos.
     const remoteUser=String(p.username||'').replace(/^@/,'').trim();
@@ -329,12 +331,8 @@ async function cloudPull(){
    S.dm=S.dm||{};
    mr.data.forEach(m=>{if(isLegacyTestMessage(m.sender_id,m.receiver_id,m.text||''))return;if((S.deletedMessages||[]).includes(String(m.id)))return;const k=key(m.sender_id,m.receiver_id);const arr=Array.isArray(S.dm[k])?S.dm[k]:[];const id=String(m.id);if(!arr.some(x=>String(x[4]||'')===id)){arr.push([m.sender_id,m.text||'',new Date(m.created_at).getTime(),messageMediaDecode(m.media),id])}S.dm[k]=arr.sort((a,b)=>(a[2]||0)-(b[2]||0))});
   }
-  removeLulaProfilesLocal();
   await restoreProfileMediaDB();
   saveLocalOnly();R();
-  // Remove the matching remote profile rows so @LulaOficial can be reused immediately.
-  const lulaIds=[...new Set(S.deletedProfiles||[])];
-  if(lulaIds.length){try{await SB.from('blooming_profiles').delete().in('id',lulaIds)}catch(err){console.warn('lula profile cleanup',err)}}
  }catch(e){console.warn('cloudPull',e)}
 }
 function cloudRowProfile(u){return {id:u.id,account_id:u.accountId||S.currentAccountId||null,nome:u.nome||'Perfil',username:u.user||'',bio:u.bio||'',loc:u.loc||'',cor:u.cor||'#E8336F',emo:u.emo||'🌸',foto:u.foto||'',capa:u.capa||'',verificado:!!u.verificado,privada:!!u.privada,seg:+u.seg||0,sgd:+u.sgd||0}}
@@ -910,7 +908,7 @@ function editU(id){const u=U(id);let ph=u.foto,cp=u.capa||'';md(`<div style="dis
  $('#md').onclick=async e=>{const m=e.target.closest('[data-m]')?.dataset.m;if(m==='x'){$('#md').close();return}if(m==='cropAvatar'){$('#ef').click();return}if(m==='cropCover'){$('#ecp').click();return}if(m==='profileUrl'){profileImageFromUrl($('#efUrl').value,'avatar',d=>{ph=d;const p=$('#profilePreview');if(p)p.style.backgroundImage=`url('${d}')`});return}if(m==='coverUrl'){profileImageFromUrl($('#ecpUrl').value,'cover',d=>{cp=d;const p=$('#coverPreview');if(p)p.style.backgroundImage=`url('${d}')`});return}if(m!=='s')return;const nu=$('#eu').value.trim().replace(/^@/,'');if(!nu||Object.values(S.u).some(x=>x.id!==id&&x.user===nu)){$('#er').textContent='Escolha um @username único.';return}const lk=linkNorm($('#elk').value);if($('#elk').value.trim()&&!lk){$('#er').textContent='Esse link não parece válido.';return}const old={...u};try{await createSafeBackup('profile-edit');let fotoFinal=ph,capaFinal=cp;if(CLOUD_ON&&SB){if(ph&&ph.startsWith('data:')){const f=dataUrlToFile(ph,`avatar-${id}.jpg`);if(f){try{fotoFinal=await cloudUploadMedia(f)}catch(err){console.warn('avatar upload failed; keeping local image',err);fotoFinal=ph}}}if(cp&&cp.startsWith('data:')){const f=dataUrlToFile(cp,`cover-${id}.jpg`);if(f){try{capaFinal=await cloudUploadMedia(f)}catch(err){console.warn('cover upload failed; keeping local image',err);capaFinal=cp}}}}Object.assign(u,{link:lk,nasc:$('#enb').value||'',nascv:{d:$('#ebd').checked?1:0,m:$('#ebm').checked?1:0,y:$('#eby').checked?1:0},nome:$('#en').value.trim()||u.nome,user:nu,bio:$('#eb').value,loc:$('#el').value,seg:+$('#es').value||0,sgd:+$('#eg').value||0,cor:(/^#[0-9a-f]{6}$/i.test($('#ecHex').value.trim())?$('#ecHex').value.trim():$('#ec').value),emo:$('#ee').value||u.emo,foto:fotoFinal,verificado:$('#ev').checked,capa:capaFinal,privada:$('#epv').checked});await saveProfileMediaDB();saveLocalOnly();if(CLOUD_ON)await cloudSync();$('#md').close();if($('#mn'))shell();applyProfileTheme();view()}catch(err){Object.assign(u,old);$('#er').textContent='Não foi possível salvar esta alteração: '+(err.message||err);await createSafeBackup('profile-save-failed')}}}
 
 
-function accounts(){const m=ME(),a=currentAccount();const cloudStatus=CLOUD_ON?'🟢 Conectado ao Supabase':'⚪ Ainda não configurado';const cloudPanel=cloudAdmin()?`<details open class="fold cloudfold"><summary>☁️ Banco online — Supabase</summary><div><p><b>${cloudStatus}</b></p>${CLOUD_CFG?.url?`<p class="mut" style="word-break:break-all">${H(CLOUD_CFG.url)}</p>`:'<p class="mut">Configure o banco para compartilhar dados entre dispositivos.</p>'}<button class="b" data-m="cloud">☁️ Configurar / testar Supabase</button></div></details>`:'';md(`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><h2>Configurações</h2><button class="b g sm" data-m="x" aria-label="Fechar configurações" title="Fechar">${IC.x}</button></div>${cloudPanel}<details open class="fold"><summary>Perfil atual</summary><div>${m?`<p><b>${H(m.nome)}</b> <span class="mut">@${H(m.user)}</span></p>${canEditProfile(S.me)?`<button class="b g sm" data-m="ed">Editar perfil</button> <button class="b g sm" data-m="dpa">Apagar todas as publicações</button>`:`<p class="mut">Perfil de outra conta — edição bloqueada.</p>`}<div id="dpz"></div>`:`<p class="mut">Nenhum perfil selecionado.</p><button class="b sm" data-m="pick">Escolher perfil</button>`}</div></details><details open class="fold"><summary>Conta e perfis</summary><div><p class="mut">Conta atual: <b>${H(a?a.nome:accessMode==='ana'?'Ana Laura':accessMode==='alana'?'Alana Aquino':S.vault?S.vault.nome:'')}</b></p>${UNL&&accessMode?`${vaultGrid(accessMode==='ana'?'ana':accessMode==='vault'?'vault':'account')}<p><button class="b g sm" data-m="pick">Trocar de perfil</button> <button class="b g sm" data-m="newprofile">+ Criar perfil</button>${a&&accessMode!=='ana'&&accessMode!=='vault'&&accountProfiles(a.id).length>1?` <button class="b g sm" data-m="manageaccountprofiles">Gerenciar perfis desta conta</button>`:''}</p><p class="mut">Cada perfil desta conta pode ser editado pelo próprio usuário. Perfis adicionais podem ser excluídos pelo responsável pela conta.</p><p><button class="b g sm" data-m="recovery">Dados de recuperação</button></p>`:S.vault?'<p class="mut">Digite o código de acesso para ver os perfis.</p><input class="fi" id="vc" type="password" placeholder="Código"><p><button class="b sm" data-m="vk">Desbloquear</button></p><p id="er" class="tg"></p>':'<p class="mut">Nenhum código configurado ainda.</p>'}</div></details>${anaEditMode()?`<details open class="fold"><summary>🛠️ Modo de edição</summary><div><p class="mut">Modo de edição ativo porque o perfil <b>@nalau</b> está selecionado. Aqui você pode remover perfis repetidos.</p><button class="b g sm" data-m="manageprofiles">Gerenciar / apagar perfis</button> <button class="b g sm" data-m="edoff">Desativar modo de edição</button></div></details>`:`<details class="fold"><summary>🛠️ Modo de edição</summary><div><p class="mut">Para ativar, selecione o perfil <b>@nalau</b> na tela de perfis.</p></div></details>`}<p>Tema: <button class="b g sm" data-m="t0">Auto</button> <button class="b g sm" data-m="t1">Claro</button> <button class="b g sm" data-m="t2">Escuro</button></p><details class="fold"><summary>Integrações e automação</summary><div><p class="mut">Traga um perfil que já existe fora daqui ou mantenha publicações do X atualizadas no Blooming.</p><button class="b g sm" data-m="impx">${IC.sync} Importar perfil do X / Twitter</button> <button class="b g sm" data-m="xsync">${IC.sync} Sincronizar com X</button> <button class="b g sm" data-m="theme">${IC.calendar} Publicações temáticas</button> <button class="b g sm" data-m="gov">${IC.building} Perfis governamentais</button> <button class="b g sm" data-m="colors">${IC.palette} Cor do perfil</button> <button class="b g sm" data-m="tutorial">${IC.home} Abrir tutorial</button></div></details><p>${cloudAdmin()?'<button class="b g" data-m="cloud">☁️ Configurar banco online</button> ':''}<button class="b g" data-m="transfer">Transferir conta</button> <button class="b g" data-m="backup">Backup dos dados</button></p><p><button class="b g" data-m="o">Sair</button> <button class="b g" data-m="r">Restaurar dados originais</button></p>`);$('#md').onclick=async e=>{const m=e.target.closest('[data-m]')?.dataset.m,r=document.documentElement;if(e.target.id==='cr'){S.cr=e.target.checked;R();return}if(!m)return;
+function accounts(){const m=ME(),a=currentAccount();const cloudStatus=CLOUD_ON?'🟢 Conectado ao Supabase':'⚪ Ainda não configurado';const cloudPanel=cloudAdmin()?`<details open class="fold cloudfold"><summary>☁️ Banco online — Supabase</summary><div><p><b>${cloudStatus}</b></p>${CLOUD_CFG?.url?`<p class="mut" style="word-break:break-all">${H(CLOUD_CFG.url)}</p>`:'<p class="mut">Configure o banco para compartilhar dados entre dispositivos.</p>'}<button class="b" data-m="cloud">☁️ Configurar / testar Supabase</button></div></details>`:'';md(`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><h2>Configurações</h2><button class="b g sm" data-m="x" aria-label="Fechar configurações" title="Fechar">${IC.x}</button></div>${cloudPanel}<details open class="fold"><summary>Perfil atual</summary><div>${m?`<p><b>${H(m.nome)}</b> <span class="mut">@${H(m.user)}</span></p>${canEditProfile(S.me)?`<button class="b g sm" data-a="ed" data-i="${H(S.me)}">Editar perfil</button> <button class="b g sm" data-m="dpa">Apagar todas as publicações</button>`:`<p class="mut">Perfil de outra conta — edição bloqueada.</p>`}<div id="dpz"></div>`:`<p class="mut">Nenhum perfil selecionado.</p><button class="b sm" data-m="pick">Escolher perfil</button>`}</div></details><details open class="fold"><summary>Conta e perfis</summary><div><p class="mut">Conta atual: <b>${H(a?a.nome:accessMode==='ana'?'Ana Laura':accessMode==='alana'?'Alana Aquino':S.vault?S.vault.nome:'')}</b></p>${UNL&&accessMode?`${vaultGrid(accessMode==='ana'?'ana':accessMode==='vault'?'vault':'account')}<p><button class="b g sm" data-m="pick">Trocar de perfil</button> <button class="b g sm" data-m="newprofile">+ Criar perfil</button>${a&&accessMode!=='ana'&&accessMode!=='vault'&&accountProfiles(a.id).length>1?` <button class="b g sm" data-m="manageaccountprofiles">Gerenciar perfis desta conta</button>`:''}</p><p class="mut">Cada perfil desta conta pode ser editado pelo próprio usuário. Perfis adicionais podem ser excluídos pelo responsável pela conta.</p><p><button class="b g sm" data-m="recovery">Dados de recuperação</button></p>`:S.vault?'<p class="mut">Digite o código de acesso para ver os perfis.</p><input class="fi" id="vc" type="password" placeholder="Código"><p><button class="b sm" data-m="vk">Desbloquear</button></p><p id="er" class="tg"></p>':'<p class="mut">Nenhum código configurado ainda.</p>'}</div></details>${anaEditMode()?`<details open class="fold"><summary>🛠️ Modo de edição</summary><div><p class="mut">Modo de edição ativo porque o perfil <b>@nalau</b> está selecionado. Aqui você pode remover perfis repetidos.</p><button class="b g sm" data-m="manageprofiles">Gerenciar / apagar perfis</button> <button class="b g sm" data-m="edoff">Desativar modo de edição</button></div></details>`:`<details class="fold"><summary>🛠️ Modo de edição</summary><div><p class="mut">Para ativar, selecione o perfil <b>@nalau</b> na tela de perfis.</p></div></details>`}<p>Tema: <button class="b g sm" data-m="t0">Auto</button> <button class="b g sm" data-m="t1">Claro</button> <button class="b g sm" data-m="t2">Escuro</button></p><details class="fold"><summary>Integrações e automação</summary><div><p class="mut">Traga um perfil que já existe fora daqui ou mantenha publicações do X atualizadas no Blooming.</p><button class="b g sm" data-m="impx">${IC.sync} Importar perfil do X / Twitter</button> <button class="b g sm" data-m="xsync">${IC.sync} Sincronizar com X</button> <button class="b g sm" data-m="theme">${IC.calendar} Publicações temáticas</button> <button class="b g sm" data-m="gov">${IC.building} Perfis governamentais</button> <button class="b g sm" data-m="colors">${IC.palette} Cor do perfil</button> <button class="b g sm" data-m="tutorial">${IC.home} Abrir tutorial</button></div></details><p>${cloudAdmin()?'<button class="b g" data-m="cloud">☁️ Configurar banco online</button> ':''}<button class="b g" data-m="transfer">Transferir conta</button> <button class="b g" data-m="backup">Backup dos dados</button></p><p><button class="b g" data-m="o">Sair</button> <button class="b g" data-m="r">Restaurar dados originais</button></p>`);$('#md').onclick=async e=>{const m=e.target.closest('[data-m]')?.dataset.m,r=document.documentElement;if(e.target.id==='cr'){S.cr=e.target.checked;R();return}if(!m)return;
  if(m==='impx'){importX();return}
  if(m==='xsync'){xSyncSettings();return}
  if(m==='theme'){thematicSettings();return}
@@ -982,7 +980,20 @@ document.addEventListener('click',async e=>{const el=e.target.closest('[data-a]'
   if(CLOUD_ON&&SB){try{const {data,error}=await SB.from('blooming_accounts').select('id,nome').eq('nome',n).eq('pw_hash',h).maybeSingle();if(error)throw error;if(data){S.accounts[data.id]=S.accounts[data.id]||{id:data.id,nome:data.nome,pw:h,profiles:[],legacy:false};S.accounts[data.id].nome=data.nome;S.accounts[data.id].pw=h;S.currentAccountId=data.id;S.me=null;S.editMode=false;accessMode='normal';UNL=true;save();await cloudPull();unlockScreen(true);maybeTutorial();return}}catch(err){console.warn(err)}}const acc=Object.values(S.accounts).find(x=>String(x.nome||'').trim().toLowerCase()===nl&&x.pw===h);if(acc){accessMode='normal';S.currentAccountId=acc.id;S.me=null;S.editMode=false;UNL=true;save();unlockScreen(true);maybeTutorial()}else $('#le').textContent='Nome ou código incorretos. Se ainda não tiver conta, use “Criar código”.'}
  if(a==='vv')unlockScreen(UNL);if(a==='vs')vaultSetup();if(a==='vb')login();
  if(a==='vu'){if(S.vault&&pwh($('#vc').value)===S.vault.h){accessMode='vault';UNL=true;unlockScreen(true)}else $('#le').textContent='Código incorreto.'}
- if(a==='vp'&&UNL&&U(i)&&accessAllowed(i)){S.me=i;S.editMode=isAnaLauraProfile(U(i))&&accessMode==='ana';saveLocalOnly();tab='p';location.hash='#/';R();if(CLOUD_ON)setTimeout(()=>cloudPull(),0);maybeTutorial()}if(a==='newprofile'&&UNL){createProfile()}if(a==='delprofile'&&UNL){deleteProfile(i)}
+ if(a==='vp'&&UNL&&U(i)){
+   const u=U(i);
+   // Um perfil que foi exibido pelo seletor é selecionável. A relação conta→perfil
+   // pode estar desatualizada no aparelho, portanto não bloqueie o toque por ela.
+   S.me=i;
+   if(u.accountId&&S.accounts[u.accountId])S.currentAccountId=u.accountId;
+   S.editMode=isAnaLauraProfile(u)&&accessMode==='ana';
+   saveLocalOnly();
+   tab='p';
+   location.hash='#/';
+   R();
+   if(CLOUD_ON)setTimeout(()=>cloudPull().then(()=>{if(S.me===i)R()}),0);
+   maybeTutorial();
+ }if(a==='newprofile'&&UNL){createProfile()}if(a==='delprofile'&&UNL){deleteProfile(i)}
  if(a==='cn')signup();if(a==='acc')accounts();if(a==='ed'&&canEditProfile(i))editU(i);if(a==='ep'&&canEditPost(S.posts.find(p=>p.id===i)))editPost(i);if(a==='dp'&&canEditPost(S.posts.find(p=>p.id===i)))deletePost(i);
  if(a==='np'){quickPost();return}
  if(a==='tb'){tab=i;R()}if(a==='pi'){pImg=!pImg;const t=$('#nt').value;R();$('#nt').value=t}
@@ -1024,6 +1035,12 @@ document.addEventListener('click',async e=>{const el=e.target.closest('[data-a]'
  if(a==='sticker'){stickerPicker(i);return}
  if(a==='sm'){const inp=$('#mi'),t=inp.value.trim(),fileEl=$('#chatMedia');if(!t&&!(fileEl&&fileEl.files[0]))return;if(!m||!U(i)){alert('Escolha um perfil válido para conversar.');return}const k=key(m,i),ts=Date.now();let src=null;if(fileEl&&fileEl.files[0]){const f=fileEl.files[0];try{src=CLOUD_ON?await cloudUploadMedia(f):await readMedia(f)}catch(err){alert('Falha ao enviar a mídia: '+(err.message||err));return}fileEl.value='';}const localMsg=[m,t,ts,src,'m'+Date.now()+Math.random().toString(36).slice(2,8)];(S.dm[k]=S.dm[k]||[]).push(localMsg);saveLocalOnly();R();if(CLOUD_ON&&SB){try{const row={id:localMsg[4],sender_id:m,receiver_id:i,text:t,media:messageMediaEncode(src),created_at:new Date(ts).toISOString()};const {error}=await SB.from('blooming_messages').upsert(row,{onConflict:'id'});if(error)throw error;await refreshConversation(i);R()}catch(err){console.warn('message sync',err);alert('A mensagem ficou salva neste aparelho, mas não pôde ser enviada ao banco online: '+(err.message||err));}}}
 });
+document.addEventListener('click',function(e){
+ const b=e.target.closest('[data-a="ed"]');
+ if(!b)return;
+ const id=b.dataset.i||S.me;
+ setTimeout(()=>{try{const md=document.getElementById('md');if(md&&md.open)return;if(id&&typeof editU==='function'&&U(id)){editU(id)}}catch(err){console.warn('Blooming profile editor fallback',err)}},120);
+},true);
 document.addEventListener('paste',async e=>{const scope=composerScope(),ta=scope.querySelector('#nt');if(!ta)return;const items=[...(e.clipboardData?.items||[])];const it=items.find(x=>x.type.startsWith('image/'));if(it){e.preventDefault();const f=it.getAsFile();if(f){(composerMedia||(composerMedia=[])).push({type:f.type==='image/gif'?'gif':'image',src:await readMedia(f)});renderComposer()}}});
 document.addEventListener('change',async e=>{const el=e.target;if(el.id==='chatMedia'){const f=el.files[0];if(!f)return;const chatTarget=el.dataset.chatTarget||location.hash.split('/')[2]||'';if(!chatTarget||!S.me){el.value='';return}let src='';try{src=CLOUD_ON?await cloudUploadMedia(f):await readMedia(f)}catch(err){alert('Falha ao enviar a mídia para o armazenamento online.');src=await readMedia(f)}const type=f.type.startsWith('video/')?'video':f.type.startsWith('audio/')?'audio':(f.type==='image/gif'?'gif':'image');const k=key(S.me,chatTarget),ts=Date.now();(S.dm[k]=S.dm[k]||[]).push([S.me,'',ts,{type,src,name:f.name},'local-'+ts+'-'+Math.random().toString(36).slice(2)]);save();el.value='';if($('#chatAttach'))$('#chatAttach').hidden=true;R();return}if(el.id!=='mediaFile')return;const files=[...el.files];if(!files.length)return;const k=el.dataset.kind||'image';for(const f of files){let src='';try{src=CLOUD_ON?await cloudUploadMedia(f):await readMedia(f)}catch(err){alert('Falha ao enviar a mídia para o armazenamento online.');src=await readMedia(f)};(composerMedia||(composerMedia=[])).push({type:k,src,name:f.name,mime:f.type})}renderComposer();el.value=''});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='mi')document.querySelector('[data-a="sm"]').click();if(e.key==='Enter'&&e.target.id==='ci')document.querySelector('[data-a="sc"]').click();if(e.key==='Enter'&&e.target.id==='lp')document.querySelector('[data-a="li"]').click()});
@@ -1045,8 +1062,10 @@ async function publishPost(){
  await Promise.all(pendingLinks.splice(0));
  const t=ta.value.trim(),mm=composerMedia||[],m=S.me;
  if(!t&&!mm.length&&!pollDraft)return;
- S.posts.push({id:'p'+Date.now(),u:m,t,ts:Date.now(),lk:0,e:'',by:[],c:[],mediaItems:mm,media:mm.length===1?mm[0]:mm,poll:pollDraft});
- composerMedia=null;pollDraft=null;pImg=false;composerHost='home';$('#md').close();R()
+ const newPost={id:'p'+Date.now(),u:m,t,ts:Date.now(),lk:0,e:'',by:[],c:[],mediaItems:mm,media:mm.length===1?mm[0]:mm,poll:pollDraft};
+ S.posts.push(newPost);
+ composerMedia=null;pollDraft=null;pImg=false;composerHost='home';$('#md').close();R();
+ if(CLOUD_ON)await cloudSync();
 }
 function repostMenu(id){
  const src=S.posts.find(x=>x.id===id);if(!src||isBlocked(src.u))return;
@@ -1438,5 +1457,43 @@ restoreSession();
 try{view();loadTombstones().then(()=>{try{purgeDeletedContent();view();if(CLOUD_ON)setTimeout(()=>cloudPull(),0)}catch(err){console.warn('tombstones startup',err)}});if(CLOUD_ON)setTimeout(()=>cloudPull(),300)}catch(e){console.error('Falha ao abrir Blooming:',e);const a=document.getElementById('app');if(a){a.innerHTML='<div class="lo"><h1 class="lg">Blooming</h1><p>Ocorreu um erro ao iniciar a interface.</p><p class="mut">Seus dados atuais foram preservados.</p><button class="b" onclick="repairBlooming()">Corrigir e abrir</button></div>'}}
 /* Automação fica sob demanda para evitar bloqueio durante a abertura do HTML. */
 setInterval(()=>{try{runAutomations()}catch(e){console.warn('Automação:',e)}},60000);
-</script><script src="./profile-media-v2.js"></script>
+</script>
+
+<script>
+/* BLOOMING_FINAL_UI_FIXES
+   - Profile links work with touch events on mobile and desktop.
+   - Sidebars do not create a second page scrollbar.
+   - Does not replace the existing profile editor.
+*/
+(function(){
+  const st=document.createElement('style');
+  st.textContent=`
+    html,body{overflow-x:hidden!important;overflow-y:auto!important;height:auto!important}
+    #app{min-height:100vh;overflow:visible!important}
+    #mn{overflow:visible!important}
+    .layout,.cols,.columns,.feed,.timeline,.side,.sidebar,.right,.left,
+    .feedcol,.sidecol,.homegrid{overflow-y:visible!important;max-height:none!important}
+    .side,.sidebar,.right,.sidecol{height:auto!important}
+    @media(max-width:700px){.side,.sidebar,.right,.sidecol{position:static!important}}
+  `;
+  document.head.appendChild(st);
+
+  document.addEventListener('click',function(ev){
+    const a=ev.target.closest && ev.target.closest('a[href^="#/perfil/"]');
+    if(!a)return;
+    const href=a.getAttribute('href')||'';
+    const id=decodeURIComponent(href.slice('#/perfil/'.length));
+    if(!id || typeof U!=='function' || !U(id))return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    try{
+      // Navegar para outro perfil NÃO troca o perfil ativo da conta.
+      // Isso permite visualizar perfis de outras contas sem assumir a identidade deles.
+      location.hash='#/perfil/'+encodeURIComponent(id);
+      if(typeof R==='function')R();
+      if(typeof window.scrollTo==='function')window.scrollTo({top:0,behavior:'instant'});
+    }catch(e){console.warn('Blooming profile navigation',e)}
+  },true);
+})();
+</script>
 </body></html>
