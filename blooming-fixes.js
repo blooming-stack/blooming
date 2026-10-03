@@ -11,10 +11,14 @@
   async function repairProfileMedia(){try{if(typeof restoreProfileMediaDB==='function')await restoreProfileMediaDB()}catch(e){console.warn('Blooming profile media repair',e)}}
 
   function fixPageScroll(){
-    if(document.getElementById('blooming-scroll-fix'))return;
-    var style=document.createElement('style');style.id='blooming-scroll-fix';
-    style.textContent='html,body{overflow-x:hidden!important;overflow-y:auto!important;height:auto!important;min-height:100%;}#app{min-height:100vh;overflow:visible!important}.sh{align-items:start!important}.nv{position:sticky!important;top:0!important;height:100vh!important;align-self:start!important;overflow:visible!important}.rc{position:static!important;top:auto!important;height:auto!important;max-height:none!important;overflow:visible!important;align-self:start!important}main{overflow:visible!important;height:auto!important;max-height:none!important}@media(max-width:900px){.nv{position:sticky!important;top:0!important}.rc{position:static!important}}';
-    (document.head||document.documentElement).appendChild(style);
+    var style=document.getElementById('blooming-scroll-fix');
+    if(!style){style=document.createElement('style');style.id='blooming-scroll-fix';(document.head||document.documentElement).appendChild(style);}
+    /* Desktop: keep the three columns fixed and let the central main area scroll.
+       Mobile: restore the original bottom navigation and normal page scrolling. */
+    style.textContent=''+
+      '@media(min-width:701px){html,body{height:100%;overflow:hidden!important}#app{height:100vh;min-height:0!important;overflow:hidden!important}.sh{height:100vh!important;min-height:0!important;align-items:stretch!important}.nv{position:sticky!important;top:0!important;height:100vh!important;max-height:100vh!important;overflow:hidden!important;align-self:start!important}.rc{position:sticky!important;top:0!important;height:100vh!important;max-height:100vh!important;overflow:auto!important;align-self:start!important}main{height:100vh!important;min-height:0!important;max-height:100vh!important;overflow-y:auto!important;overflow-x:hidden!important}'+
+      '}'+
+      '@media(max-width:700px){html,body{height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important}#app{height:auto!important;min-height:100vh!important;overflow:visible!important}.sh{display:grid!important;grid-template-columns:1fr!important;height:auto!important;min-height:100vh!important}.nv{position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;height:auto!important;max-height:none!important;display:flex!important;flex-direction:row!important;justify-content:space-around!important;align-items:stretch!important;overflow:visible!important;z-index:1000!important;padding:4px 4px calc(4px + env(safe-area-inset-bottom,0px))!important}.nv .lg,.nv .b,.nv .me{display:none!important}.nv a,.nv button.l{display:flex!important;flex:1 1 0!important;min-width:0!important;justify-content:center!important;align-items:center!important;padding:10px 8px!important;gap:0!important}.nv a span,.nv button.l span{display:none!important}.nv a .ic,.nv button.l .ic{width:24px!important;height:24px!important}main{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;padding-bottom:76px!important}.rc{position:static!important;height:auto!important;max-height:none!important;overflow:visible!important;display:none!important}}';
   }
 
   async function persistProfileToCloud(u){
@@ -45,10 +49,6 @@
               var m=e.target.closest&&e.target.closest('[data-m]')?.dataset.m;
               if(m!=='s')return originalClick.call(this,e);
               try{
-                /* Run the original editor first: it reads the form, updates S.u,
-                   uploads media and closes the modal. Only then persist the final
-                   profile object again, so name/bio/location cannot be overwritten
-                   by a stale local copy after a reload. */
                 var out=await originalClick.call(this,e);
                 var pid=id||S.me,u=S&&S.u&&S.u[pid];
                 if(u)await persistProfileToCloud(u);
