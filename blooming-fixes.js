@@ -21,7 +21,6 @@ function datePatch(){if(window.__bloomingDatePatch)return;window.__bloomingDateP
 function mediaVisualFix(){if($('#blooming-media-visual-fix'))return;const s=document.createElement('style');s.id='blooming-media-visual-fix';s.textContent=`/* Fixed marker: one marker, top-right, never left/bottom. */
 .po,.single,.pf{position:relative}
 .po .pinned,.po [data-pinned="true"],.po .pin,.single .pinned,.single [data-pinned="true"],.single .pin{position:absolute!important;top:8px!important;right:8px!important;left:auto!important;bottom:auto!important;z-index:20!important;margin:0!important;display:block!important;transform:none!important}
-/* If the marker is rendered inside the media wrapper, anchor it to that wrapper. */
 .po .gallery,.single .gallery,.po .pi,.single .pi{position:relative}
 .po .gallery .pinned,.po .gallery [data-pinned="true"],.po .gallery .pin,.single .gallery .pinned,.single .gallery [data-pinned="true"],.single .gallery .pin{position:absolute!important;top:8px!important;right:8px!important;left:auto!important;bottom:auto!important;z-index:30!important}
 .media-preview,.gallery{border:0!important}
@@ -34,3 +33,5 @@ function forgotCode(){document.querySelectorAll('[data-blooming-forgot-code]').f
 function init(){scrollFix();patchCloud();removeGeneric();datePatch();mediaVisualFix();forgotCode();document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-m="x"]');if(b&&b.closest('#md')){e.preventDefault();e.stopPropagation();safe(()=>$('#md').close())}},true);document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#manageProfilesModal .close,#manageProfilesModal .modal-close,#profileManagerModal .close');if(b){e.preventDefault();e.stopPropagation();closeProfileManager()}},true);setTimeout(()=>{scrollFix();patchCloud();datePatch();mediaVisualFix();forgotCode();sortPosts()},1200)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
+/* Load definitive fixes after the legacy fixes, without replacing index.html. */
+(function(){var s=document.createElement('script');s.src='/blooming/blooming-final-fixes.js?v=2';s.async=false;document.head.appendChild(s)})();
