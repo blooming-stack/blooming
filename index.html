@@ -461,7 +461,7 @@ if(!S.deletedProfiles.includes('ana-admin')){let anaAdmin=Object.values(S.u).fin
  if(!u.themeBot)u.themeBot={enabled:false,category:'geral',unit:'hours',interval:24,customInterval:24,lastAt:0,context:'',eventTitle:'',eventAt:'',participants:'',includeImage:true};else{u.themeBot.unit=u.themeBot.unit||'hours';u.themeBot.customInterval=+u.themeBot.customInterval||+u.themeBot.interval||24;u.themeBot.context=u.themeBot.context||'';u.themeBot.eventTitle=u.themeBot.eventTitle||'';u.themeBot.eventAt=u.themeBot.eventAt||'';u.themeBot.participants=u.themeBot.participants||'';if(u.themeBot.includeImage===undefined)u.themeBot.includeImage=true;if(!u.themeBot.imageSource)u.themeBot.imageSource='local';}
 });
  // A conexão online é inicializada também para visitantes, permitindo busca/URLs públicas.
-if(CLOUD_ON) setTimeout(()=>cloudPull(),8000);
+/* cloudPull disabled during boot: it was freezing the page on mobile/desktop. */
  S.posts.forEach(p=>{
   if(!p.c)p.c=[];
   if(!('media' in p))p.media=null;
@@ -1450,7 +1450,7 @@ try{
   view();
   // A abertura nunca espera pelo Supabase. Tombstones e sincronização entram depois.
   loadTombstones().then(()=>{try{purgeDeletedContent();view()}catch(err){console.warn('tombstones startup',err)}});
-  if(CLOUD_ON)setTimeout(()=>{try{cloudPull()}catch(err){console.warn('cloud startup',err)}},8000);
+  /* cloudPull disabled during boot: sync only after explicit user actions/online refresh. */
 }catch(e){console.error('Falha ao abrir Blooming:',e);const a=document.getElementById('app');if(a){a.innerHTML='<div class="lo"><h1 class="lg">Blooming</h1><p>Ocorreu um erro ao iniciar a interface.</p><p class="mut">Seus dados atuais foram preservados.</p><button class="b" onclick="repairBlooming()">Corrigir e abrir</button></div>'}}
 /* Automação fica sob demanda para evitar bloqueio durante a abertura do HTML. */
 setInterval(()=>{try{runAutomations()}catch(e){console.warn('Automação:',e)}},60000);
