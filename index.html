@@ -461,7 +461,7 @@ if(!S.deletedProfiles.includes('ana-admin')){let anaAdmin=Object.values(S.u).fin
  if(!u.themeBot)u.themeBot={enabled:false,category:'geral',unit:'hours',interval:24,customInterval:24,lastAt:0,context:'',eventTitle:'',eventAt:'',participants:'',includeImage:true};else{u.themeBot.unit=u.themeBot.unit||'hours';u.themeBot.customInterval=+u.themeBot.customInterval||+u.themeBot.interval||24;u.themeBot.context=u.themeBot.context||'';u.themeBot.eventTitle=u.themeBot.eventTitle||'';u.themeBot.eventAt=u.themeBot.eventAt||'';u.themeBot.participants=u.themeBot.participants||'';if(u.themeBot.includeImage===undefined)u.themeBot.includeImage=true;if(!u.themeBot.imageSource)u.themeBot.imageSource='local';}
 });
  // A conexão online é inicializada também para visitantes, permitindo busca/URLs públicas.
-if(CLOUD_ON) setTimeout(()=>cloudPull(),0);
+if(CLOUD_ON) setTimeout(()=>cloudPull(),8000);
  S.posts.forEach(p=>{
   if(!p.c)p.c=[];
   if(!('media' in p))p.media=null;
@@ -986,14 +986,14 @@ function openLinkEditor(cb,existing){
 }
 
 document.addEventListener('click',async e=>{const el=e.target.closest('[data-a]');if(!el)return;const a=el.dataset.a,i=el.dataset.i,m=S.me;
- if(a==='lg'){S.me=i;S.editMode=isAnaLauraProfile(U(i))&&accessMode==='ana';saveLocalOnly();tab='p';location.hash='#/';R();if(CLOUD_ON)setTimeout(()=>cloudPull(),0)}
+ if(a==='lg'){S.me=i;S.editMode=isAnaLauraProfile(U(i))&&accessMode==='ana';saveLocalOnly();tab='p';location.hash='#/';R();if(CLOUD_ON)setTimeout(()=>cloudPull(),8000)}
  if(a==='li'){const n=$('#lu').value.trim(),h=pwh($('#lp').value),nl=n.toLowerCase();
-  if(nl==='ana laura'&&h===ANA_ACCESS_HASH){accessMode='ana';UNL=true;S.currentAccountId='ana';S.me=null;S.editMode=false;save();unlockScreen(true);if(CLOUD_ON)setTimeout(()=>cloudPull(),50);return}
+  if(nl==='ana laura'&&h===ANA_ACCESS_HASH){accessMode='ana';UNL=true;S.currentAccountId='ana';S.me=null;S.editMode=false;save();unlockScreen(true);if(CLOUD_ON)setTimeout(()=>cloudPull(),8000);return}
   const ag=S.accessGroups&&S.accessGroups.alana;if(nl==='alana aquino'&&ag&&ag.h){if(h===ag.h){accessMode='alana';UNL=true;S.currentAccountId='alana';S.me=null;save();unlockScreen(true);maybeTutorial()}else $('#le').textContent='Nome ou código incorretos.';return}
-  if(CLOUD_ON&&SB){try{const {data,error}=await SB.from('blooming_accounts').select('id,nome').eq('nome',n).eq('pw_hash',h).maybeSingle();if(error)throw error;if(data){S.accounts[data.id]=S.accounts[data.id]||{id:data.id,nome:data.nome,pw:h,profiles:[],legacy:false};S.accounts[data.id].nome=data.nome;S.accounts[data.id].pw=h;S.currentAccountId=data.id;S.me=null;S.editMode=false;accessMode='normal';UNL=true;save();unlockScreen(true);if(CLOUD_ON)setTimeout(()=>cloudPull(),50);maybeTutorial();return}}catch(err){console.warn(err)}}const acc=Object.values(S.accounts).find(x=>String(x.nome||'').trim().toLowerCase()===nl&&x.pw===h);if(acc){accessMode='normal';S.currentAccountId=acc.id;S.me=null;S.editMode=false;UNL=true;save();unlockScreen(true);maybeTutorial()}else $('#le').textContent='Nome ou código incorretos. Se ainda não tiver conta, use “Criar código”.'}
+  if(CLOUD_ON&&SB){try{const {data,error}=await SB.from('blooming_accounts').select('id,nome').eq('nome',n).eq('pw_hash',h).maybeSingle();if(error)throw error;if(data){S.accounts[data.id]=S.accounts[data.id]||{id:data.id,nome:data.nome,pw:h,profiles:[],legacy:false};S.accounts[data.id].nome=data.nome;S.accounts[data.id].pw=h;S.currentAccountId=data.id;S.me=null;S.editMode=false;accessMode='normal';UNL=true;save();unlockScreen(true);if(CLOUD_ON)setTimeout(()=>cloudPull(),8000);maybeTutorial();return}}catch(err){console.warn(err)}}const acc=Object.values(S.accounts).find(x=>String(x.nome||'').trim().toLowerCase()===nl&&x.pw===h);if(acc){accessMode='normal';S.currentAccountId=acc.id;S.me=null;S.editMode=false;UNL=true;save();unlockScreen(true);maybeTutorial()}else $('#le').textContent='Nome ou código incorretos. Se ainda não tiver conta, use “Criar código”.'}
  if(a==='vv')unlockScreen(UNL);if(a==='vs')vaultSetup();if(a==='vb')login();
  if(a==='vu'){if(S.vault&&pwh($('#vc').value)===S.vault.h){accessMode='vault';UNL=true;unlockScreen(true)}else $('#le').textContent='Código incorreto.'}
- if(a==='vp'&&UNL&&U(i)&&accessAllowed(i)){S.me=i;S.editMode=isAnaLauraProfile(U(i))&&accessMode==='ana';saveLocalOnly();tab='p';location.hash='#/';R();if(CLOUD_ON)setTimeout(()=>cloudPull(),0);maybeTutorial()}if(a==='newprofile'&&UNL){createProfile()}if(a==='delprofile'&&UNL){deleteProfile(i)}
+ if(a==='vp'&&UNL&&U(i)&&accessAllowed(i)){S.me=i;S.editMode=isAnaLauraProfile(U(i))&&accessMode==='ana';saveLocalOnly();tab='p';location.hash='#/';R();if(CLOUD_ON)setTimeout(()=>cloudPull(),8000);maybeTutorial()}if(a==='newprofile'&&UNL){createProfile()}if(a==='delprofile'&&UNL){deleteProfile(i)}
  if(a==='cn')signup();if(a==='acc')accounts();if(a==='ed'&&canEditProfile(i))editU(i);if(a==='ep'&&canEditPost(S.posts.find(p=>p.id===i)))editPost(i);if(a==='dp'&&canEditPost(S.posts.find(p=>p.id===i)))deletePost(i);
  if(a==='np'){quickPost();return}
  if(a==='tb'){tab=i;R()}if(a==='pi'){pImg=!pImg;const t=$('#nt').value;R();$('#nt').value=t}
