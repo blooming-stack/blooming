@@ -1,0 +1,15 @@
+name: Blooming login hotfix
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  patch-login:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply login and recovery hotfix
+        env:
+          PATCH_B64: |
+            PGFzdD4K
