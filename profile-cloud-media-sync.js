@@ -6,9 +6,14 @@ function boot(){
  if(started)return; started=true;
  if(!window.SB)return;
  var attempts=0;
+ function authenticated(){
+  try{return typeof UNL!=='undefined'&&UNL===true&&window.S&&S.currentAccountId&&S.me&&S.u&&S.u[S.me]}catch(_){return false}
+ }
  function sync(){
   attempts++;
   try{
+   /* Never run this background media refresh while the access screen/session is unstable. */
+   if(!authenticated()){if(attempts<20)setTimeout(sync,700);return;}
    var active=window.S&&S.me?S.me:null;
    if(!active||!S.u||!S.u[active]){if(attempts<20)setTimeout(sync,500);return;}
    var u=S.u[active], username=String(u.user||'').replace(/^@/,'');
@@ -24,7 +29,8 @@ function boot(){
   }catch(e){if(attempts<20)setTimeout(sync,800)}
  }
  function apply(res){
-  var p=res&&res.data&&res.data[0]; if(!p||!window.S||!S.u)return;
+  var p=res&&res.data&&res.data[0];
+  if(!p||!window.S||!S.u||!authenticated())return;
   var id=String(p.id||S.me), old=S.u[id]||S.u[S.me]||{};
   var next=Object.assign({},old);
   if(p.nome!=null)next.nome=p.nome;
@@ -41,7 +47,9 @@ function boot(){
   S.u[id]=next;
   if(id!==S.me&&S.u[S.me])S.u[S.me]=next;
   try{if(typeof saveLocalOnly==='function')saveLocalOnly()}catch(e){}
-  try{if(typeof R==='function')R()}catch(e){}
+  /* This was the direct source of the trace: external media sync called R() unconditionally.
+     Never call R unless the authenticated session is still valid. */
+  try{if(authenticated()&&typeof R==='function')R()}catch(e){}
  }
  sync();
  document.addEventListener('visibilitychange',function(){if(!document.hidden){attempts=0;sync()}});
