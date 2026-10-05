@@ -26,14 +26,6 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
 /* LOGIN HOTFIX: the original app starts a cloud pull during boot. A pull could call view()/R()
    while the access form was being typed, destroying #lp and making the login appear to clear itself. */
 (function loginHotfix(){
-  var originalCloudPull = window.cloudPull;
-  if(typeof originalCloudPull==='function' && !window.__bloomingCloudLoginGuard){
-    window.__bloomingCloudLoginGuard=true;
-    window.cloudPull=async function(reason){
-      if(!UNL) return;
-      return originalCloudPull.apply(this,arguments);
-    };
-  }
   document.addEventListener('click',async function(e){
     var el=e.target.closest&&e.target.closest('[data-a="li"]');
     if(!el) return;
