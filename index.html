@@ -400,7 +400,7 @@ async function cloudSync(){
   const accounts=Object.values(S.accounts||{}).filter(a=>a&&a.id&&a.pw).map(a=>{const row={id:cloudAccountId(a.id),nome:a.nome||'Conta',pw_hash:a.pw};return row;});
   if(accounts.length){const r=await SB.from('blooming_accounts').upsert(accounts,{onConflict:'id'});if(r.error)throw r.error}
   const accountByProfile={};Object.values(S.accounts||{}).forEach(a=>(Array.isArray(a.profiles)?a.profiles:[]).forEach(pid=>accountByProfile[pid]=cloudAccountId(a.id)));
-  const profiles=Object.values(S.u||{}).filter(u=>u&&u.id&&u.accountId).map(u=>{if(accountByProfile[u.id]&&u.accountId!==accountByProfile[u.id])u.accountId=accountByProfile[u.id];return cloudRowProfile(u)}).filter(r=>r.account_id);
+  const profiles=Object.values(S.u||{}).filter(u=>u&&u.id&&u.accountId&&!/^Leitor \d+$/i.test(String(u.nome||'').trim())&&!/^npc_/i.test(String(u.id||''))).map(u=>{if(accountByProfile[u.id]&&u.accountId!==accountByProfile[u.id])u.accountId=accountByProfile[u.id];return cloudRowProfile(u)}).filter(r=>r.account_id);
   // Perfis novos pertencentes a contas novas entram no banco mesmo que ainda não tenham publicação.
   if(profiles.length){const r=await SB.from('blooming_profiles').upsert(profiles,{onConflict:'id'});if(r.error)throw r.error}
   const deletedProfiles=[...new Set(S.deletedProfiles||[])];
