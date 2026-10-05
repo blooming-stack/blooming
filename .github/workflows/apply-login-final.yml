@@ -1,0 +1,63 @@
+name: Blooming final login fix
+on:
+  push:
+    paths-ignore:
+      - '.github/workflows/apply-login-final.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch loaded final fixes script
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('blooming-final-fixes.js')
+          s=p.read_text(encoding='utf-8')
+          marker='/* BLOOMING_LOGIN_LOGOUT_FINAL_FIX_V1 */'
+          if marker in s:
+              print('Login patch already present')
+              raise SystemExit(0)
+          patch=r'''\n/* BLOOMING_LOGIN_LOGOUT_FINAL_FIX_V1 */
+(function(){'use strict';
+function installLoginFix(){
+  if(window.__bloomingLoginFinalFix)return; window.__bloomingLoginFinalFix=true;
+  const login0=window.login;
+  if(typeof login0!=='function')return;
+  window.login=function(){login0.apply(this,arguments);setTimeout(function(){
+    const lp=document.getElementById('lp'); if(lp){lp.autocomplete='current-password';lp.setAttribute('data-blooming-login-field','1')}
+    const lu=document.getElementById('lu'); if(lu)lu.setAttribute('data-blooming-login-field','1');
+  },0)};
+  document.addEventListener('click',async function(e){
+    const b=e.target.closest&&e.target.closest('[data-a="li"]');if(!b)return;
+    if(b.dataset.bloomingBusy==='1')return;
+    const lu=document.getElementById('lu'),lp=document.getElementById('lp'),le=document.getElementById('le');
+    const n=String(lu?.value||'').trim(),raw=String(lp?.value||''),h=typeof window.pwh==='function'?window.pwh(raw):'';
+    if(!n||!raw){if(le)le.textContent='Informe seu nome e seu código de acesso.';return}
+    b.dataset.bloomingBusy='1';b.disabled=true;const old=b.textContent;b.textContent='Entrando…';
+    try{
+      if(window.CLOUD_ON&&window.SB){
+        try{const q=await window.SB.from('blooming_accounts').select('id,nome').ilike('nome',n).eq('pw_hash',h).limit(1);if(!q.error&&Array.isArray(q.data)&&q.data[0]){const a=q.data[0];window.S.accounts=window.S.accounts||{};const oldA=window.S.accounts[a.id]||{};window.S.accounts[a.id]={...oldA,id:a.id,nome:a.nome||oldA.nome||n,pw:h,profiles:Array.isArray(oldA.profiles)?oldA.profiles:[],legacy:!!oldA.legacy};window.S.currentAccountId=a.id;window.S.me=null;window.accessMode='normal';window.UNL=true;window.saveLocalOnly?.();window.unlockScreen?.(true);setTimeout(()=>{try{window.cloudPull?.()}catch(_){}},350);return}}catch(err){console.warn('Blooming remote login',err)}}
+      const acc=Object.values(window.S?.accounts||{}).find(a=>String(a.nome||'').trim().toLowerCase()===n.toLowerCase()&&String(a.pw||'')===h);
+      if(acc){window.accessMode='normal';window.S.currentAccountId=acc.id;window.S.me=null;window.UNL=true;window.saveLocalOnly?.();window.unlockScreen?.(true);setTimeout(()=>{try{window.cloudPull?.()}catch(_){}},350);return}
+      if(le)le.textContent='Nome ou código incorretos. Se ainda não tiver conta, use “Criar código”.';
+    }finally{b.dataset.bloomingBusy='0';b.disabled=false;b.textContent=old}
+  },true);
+}
+function installLogoutFix(){document.addEventListener('click',function(e){const b=e.target.closest&&e.target.closest('[data-m="o"]');if(!b)return;e.preventDefault();e.stopImmediatePropagation();window.UNL=false;window.accessMode='';if(window.S){window.S.me=null;window.S.currentAccountId=null}try{document.getElementById('md')?.close()}catch(_){}try{window.saveLocalOnly?.()}catch(_){}try{window.login?.()}catch(_){}},true)}
+function init(){installLoginFix();installLogoutFix()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+'''
+          p.write_text(s+patch,encoding='utf-8')
+      - name: Commit final login fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add blooming-final-fixes.js
+          git diff --cached --quiet && exit 0
+          git commit -m 'Fix Blooming login and logout directly in loaded fixes'
+          git push
