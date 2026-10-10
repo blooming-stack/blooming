@@ -305,7 +305,7 @@ async function cloudPull(){
     const rawUser=remoteUser||String(old.user||'').replace(/^@/,'').trim();
     const finalName=rawName&&!isOpaqueProfileId(rawName)&&rawName.toLowerCase()!=='conta'?rawName:(old.nome&&!isOpaqueProfileId(old.nome)?old.nome:(rawUser||'Perfil'));
     const finalUser=rawUser&&!isOpaqueProfileId(rawUser)?rawUser:(old.user&&!isOpaqueProfileId(old.user)?old.user:slugName(finalName));
-    S.u[targetId]={...old,id:targetId,nome:finalName,user:finalUser,bio:p.bio??old.bio??'',loc:p.loc??old.loc??'',cor:p.cor??old.cor??'#E8336F',emo:p.emo??old.emo??'🌸',foto:(p.foto||old.foto||''),capa:(p.capa||old.capa||''),verificado:typeof p.verificado==='boolean'?p.verificado:!!old.verificado,privada:typeof p.privada==='boolean'?p.privada:!!old.privada,seg:Number.isFinite(+p.seg)?+p.seg:+old.seg||0,sgd:Number.isFinite(+p.sgd)?+p.sgd:+old.sgd||0,blocked:Array.isArray(old.blocked)?old.blocked:[],accountId:p.account_id||old.accountId||('legacy:'+targetId)};
+    S.u[targetId]={...old,id:targetId,remoteId:p.id,nome:finalName,user:finalUser,bio:p.bio??old.bio??'',loc:p.loc??old.loc??'',cor:p.cor??old.cor??'#E8336F',emo:p.emo??old.emo??'🌸',foto:(p.foto||old.foto||''),capa:(p.capa||old.capa||''),verificado:typeof p.verificado==='boolean'?p.verificado:!!old.verificado,privada:typeof p.privada==='boolean'?p.privada:!!old.privada,seg:Number.isFinite(+p.seg)?+p.seg:+old.seg||0,sgd:Number.isFinite(+p.sgd)?+p.sgd:+old.sgd||0,blocked:Array.isArray(old.blocked)?old.blocked:[],accountId:p.account_id||old.accountId||('legacy:'+targetId)};
     if(p.account_id){const a=S.accounts[p.account_id]||(S.accounts[p.account_id]={id:p.account_id,nome:finalName||'Conta',pw:'',profiles:[],legacy:false});a.profiles=Array.isArray(a.profiles)?a.profiles:[];if(!a.profiles.includes(targetId))a.profiles.push(targetId)}
    });
   }
@@ -352,7 +352,7 @@ async function cloudPull(){
   if(lulaIds.length){try{await SB.from('blooming_profiles').delete().in('id',lulaIds)}catch(err){console.warn('lula profile cleanup',err)}}
  }catch(e){console.warn('cloudPull',e)}
 }
-function cloudRowProfile(u){return {id:u.id,account_id:u.accountId||S.currentAccountId||null,nome:u.nome||'Perfil',username:u.user||'',bio:u.bio||'',loc:u.loc||'',cor:u.cor||'#E8336F',emo:u.emo||'🌸',foto:u.foto||'',capa:u.capa||'',verificado:!!u.verificado,privada:!!u.privada,seg:+u.seg||0,sgd:+u.sgd||0}}
+function cloudRowProfile(u){return {id:u.remoteId||u.id,account_id:u.accountId||S.currentAccountId||null,nome:u.nome||'Perfil',username:u.user||'',bio:u.bio||'',loc:u.loc||'',cor:u.cor||'#E8336F',emo:u.emo||'🌸',foto:u.foto||'',capa:u.capa||'',verificado:!!u.verificado,privada:!!u.privada,seg:+u.seg||0,sgd:+u.sgd||0}}
 
 // SINCRONIZAÇÃO MULTIDISPOSITIVO ROBUSTA: o Supabase é a fonte compartilhada;
 // localStorage/IndexedDB servem apenas como cache e recuperação local.
