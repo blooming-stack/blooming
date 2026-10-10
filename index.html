@@ -456,7 +456,7 @@ function seed(){const u={};RAW.forEach(r=>u[r[0]]={id:r[0],nome:r[1],user:r[2],b
 function load(){
  // RESET GLOBAL DE CONTAS: após a limpeza do banco, cada navegador elimina
  // uma única vez o cache antigo para ele não recriar as contas apagadas.
- const RESET_KEY='blooming-account-reset-2026-10';
+ const RESET_KEY='blooming-account-reset-2026-10-v2';
  try{
   if(localStorage.getItem(RESET_KEY)!=='done'){
    const clean=seed();
@@ -513,22 +513,12 @@ async function latestSafeBackup(){try{const db=await openBackupDB();const rows=a
 const ser=()=>JSON.stringify(S);
 const saveLocalOnly=()=>{try{let raw=S;if(CLOUD_ON){raw=JSON.parse(JSON.stringify(S));Object.values(raw.u||{}).forEach(u=>{if(typeof u.foto==='string'&&u.foto.startsWith('data:')&&u.foto.length>120000)u.foto=u.foto||'';if(typeof u.capa==='string'&&u.capa.startsWith('data:')&&u.capa.length>120000)u.capa=u.capa||''});(raw.posts||[]).forEach(p=>(p.mediaItems||[]).forEach(m=>{if(m&&typeof m.src==='string'&&m.src.startsWith('data:')&&m.src.length>120000)m.src=''}));(raw.stickers||[]).forEach(st=>{if(st&&typeof st.src==='string'&&st.src.startsWith('data:')&&st.src.length>120000)st.src=''});(raw.dm?Object.values(raw.dm):[]).forEach(arr=>(arr||[]).forEach(m=>{const x=m&&m[3];if(x&&typeof x.src==='string'&&x.src.startsWith('data:')&&x.src.length>120000)x.src=''}));}localStorage.setItem(KEY,JSON.stringify(raw));saveLocalOnly.w=0}catch(e){if(!saveLocalOnly.w){saveLocalOnly.w=1;createSafeBackup('storage-full');setTimeout(()=>alert('O armazenamento local atingiu o limite. As mídias já enviadas ao banco online continuam preservadas no Supabase.'),50)}}};
 const save=()=>{createSafeBackup('before-save');saveProfileMediaDB();saveLocalOnly();if(CLOUD_ON){cloudSync().then(()=>safeCloudPull('save')).catch(e=>console.warn('save cloud sync',e));}};
-S=load();restoreProfileMediaDB().then(()=>{try{view()}catch(_){}});if(!('vault' in S))S.vault=null;if(!S.access||typeof S.access!=='object')S.access={};if(!S.accounts||typeof S.accounts!=='object')S.accounts={};if(!S.currentAccountId)S.currentAccountId=null;if(!S.accessGroups||typeof S.accessGroups!=='object')S.accessGroups={};if(!S.accessGroups.ana)S.accessGroups.ana={nome:'Ana Laura',h:'1od2szyl2mp'};if(!S.accessGroups.alana)S.accessGroups.alana={nome:'Alana Aquino',h:pwh('0000')};else {S.accessGroups.alana.nome='Alana Aquino';S.accessGroups.alana.h=pwh('0000');}if(!S.accounts.ana)S.accounts.ana={id:'ana',nome:'Ana Laura',pw:ANA_ACCESS_HASH,profiles:[],special:'ana'};else S.accounts.ana.profiles=Array.isArray(S.accounts.ana.profiles)?S.accounts.ana.profiles:[];if(!Array.isArray(S.deletedProfiles))S.deletedProfiles=[];if(!S.recovery||typeof S.recovery!=='object')S.recovery={};Object.values(S.accounts).forEach(a=>{if(!a.recovery||typeof a.recovery!=='object')a.recovery={email:'',phone:''}});Object.values(S.u||{}).forEach(u=>{if(isMabel(u))u.accountId='alana';});if(!S.accounts.alana)S.accounts.alana={id:'alana',nome:'Alana Aquino',pw:pwh('0000'),profiles:[],special:'alana'};S.accounts.alana.nome='Alana Aquino';S.accounts.alana.pw=pwh('0000');S.accounts.alana.profiles=Object.values(S.u||{}).filter(u=>isMabel(u)&&!S.deletedProfiles?.includes(u.id)).map(u=>u.id);
-removeLulaProfilesLocal();
-// RESTAURAÇÃO DOS PERFIS ORIGINAIS: os perfis de demonstração pertencem à conta Ana Laura.
-// Isso evita que uma sincronização anterior com o Supabase os deixe presos em contas legadas.
-(function restoreOriginalProfiles(){
- const a=S.accounts.ana; a.profiles=Array.isArray(a.profiles)?a.profiles:[];
- RAW.forEach(r=>{
-  const id=r[0]; if(S.deletedProfiles.includes(id)){delete S.u[id];return;} let u=S.u[id];
-  if(!u){u={id:r[0],nome:r[1],user:r[2],bio:r[3],loc:r[4],cor:r[5],emo:r[6],seg:r[7],sgd:r[8],foto:'',verificado:false,capa:'',privada:false,blocked:[],accountId:'ana'};S.u[id]=u;}
-  // Mabel continua fora da conta Ana; os demais perfis originais ficam disponíveis para Ana.
-  if(!isMabel(u)) u.accountId='ana';
-  if(!isMabel(u)&&!a.profiles.includes(id)) a.profiles.push(id);
-  if(!S.f[id]) S.f[id]=[];
- });
- a.profiles=a.profiles.filter(id=>S.u[id]&&!isMabel(S.u[id]));
-})();if(!S.accounts.alana)S.accounts.alana={id:'alana',nome:'Alana Aquino',pw:S.accessGroups.alana.h||'',profiles:Object.values(S.u).filter(u=>isMabel(u)).map(u=>u.id),special:'alana'};if(!S.xCache||typeof S.xCache!=='object')S.xCache={profiles:{},posts:{}};if(typeof S.tutorialSeen!=='boolean')S.tutorialSeen=false;if(!S.tutorialSeenAccounts||typeof S.tutorialSeenAccounts!=='object')S.tutorialSeenAccounts={};if(S.tutorialSeen&&!S.tutorialSeenAccounts[S.currentAccountId||'legacy'])S.tutorialSeenAccounts[S.currentAccountId||'legacy']=true;S.u=S.u&&typeof S.u==='object'?S.u:{};Object.values(S.u).forEach(u=>{if(!u.accountId)u.accountId='legacy:'+u.id;if(!S.accounts[u.accountId])S.accounts[u.accountId]={id:u.accountId,nome:u.nome,pw:u.pw||'',profiles:[u.id],legacy:true};else if(!S.accounts[u.accountId].profiles.includes(u.id))S.accounts[u.accountId].profiles.push(u.id)});// Reconstroi a relação conta → perfis a partir do accountId do próprio perfil.
+S=load();restoreProfileMediaDB().then(()=>{try{view()}catch(_){}});if(!('vault' in S))S.vault=null;if(!S.access||typeof S.access!=='object')S.access={};if(!S.accounts||typeof S.accounts!=='object')S.accounts={};if(!S.currentAccountId)S.currentAccountId=null;if(!S.accessGroups||typeof S.accessGroups!=='object')S.accessGroups={};if(!S.accessGroups||typeof S.accessGroups!=='object')S.accessGroups={};
+if(!S.accounts||typeof S.accounts!=='object')S.accounts={};
+if(!Array.isArray(S.deletedProfiles))S.deletedProfiles=[];
+if(!S.recovery||typeof S.recovery!=='object')S.recovery={};
+Object.values(S.accounts).forEach(a=>{if(!a.recovery||typeof a.recovery!=='object')a.recovery={email:'',phone:''}});
+if(!S.xCache||typeof S.xCache!=='object')S.xCache={profiles:{},posts:{}};if(typeof S.tutorialSeen!=='boolean')S.tutorialSeen=false;if(!S.tutorialSeenAccounts||typeof S.tutorialSeenAccounts!=='object')S.tutorialSeenAccounts={};if(S.tutorialSeen&&!S.tutorialSeenAccounts[S.currentAccountId||'legacy'])S.tutorialSeenAccounts[S.currentAccountId||'legacy']=true;S.u=S.u&&typeof S.u==='object'?S.u:{};Object.values(S.u).forEach(u=>{if(!u.accountId)u.accountId='legacy:'+u.id;if(!S.accounts[u.accountId])S.accounts[u.accountId]={id:u.accountId,nome:u.nome,pw:u.pw||'',profiles:[u.id],legacy:true};else if(!S.accounts[u.accountId].profiles.includes(u.id))S.accounts[u.accountId].profiles.push(u.id)});// Reconstroi a relação conta → perfis a partir do accountId do próprio perfil.
 // Isso evita que os perfis de demonstração/legado sejam atribuídos à conta Ana.
 Object.values(S.accounts).forEach(a=>{a.profiles=[]});
 Object.values(S.u).forEach(u=>{if(!u||!u.accountId)return;if(!S.accounts[u.accountId])S.accounts[u.accountId]={id:u.accountId,nome:u.nome||'Conta',pw:u.pw||'',profiles:[],legacy:String(u.accountId).startsWith('legacy:')};const a=S.accounts[u.accountId];if(!Array.isArray(a.profiles))a.profiles=[];if(!a.profiles.includes(u.id))a.profiles.push(u.id)});
