@@ -543,7 +543,7 @@ function profileCard(u,canDelete=false){return `<div class="profile-tile" style=
 function vaultGrid(mode){
  const a=currentAccount();
  const list=mode==='ana'?accountProfiles('ana'):mode==='vault'?Object.values(S.u).filter(accessAllowed):a?accountProfiles(a.id):[];
- const canDelete=!!a&&mode!=='vault';
+ const canDelete=mode!=='vault'&&(mode==='ana'||!!a);
  const tiles=list.map(u=>profileCard(u,canDelete&&String(u.id)!==String(S.me))).join('');
  const create=mode==='ana'||mode==='vault'||a?`<button class="profile-create" data-a="newprofile"><span>＋</span><b>Criar perfil</b></button>`:'';
  return `<div class="cd profile-grid">${tiles}${create}</div>`;
