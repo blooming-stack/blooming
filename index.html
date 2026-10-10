@@ -290,6 +290,22 @@ async function cloudPull(){
   }
   if(Array.isArray(pr.data)){
    S.accounts=S.accounts||{};
+   // Supabase é a fonte de verdade para perfis já sincronizados.
+   // Remove do cache local somente perfis que têm vínculo remoto e cuja linha
+   // não existe mais no resultado remoto; perfis locais sem remoteId são preservados.
+   const remoteProfileIds=new Set(pr.data.map(p=>String(p.id)));
+   Object.keys(S.u||{}).forEach(localId=>{
+    const localProfile=S.u[localId];
+    if(!localProfile||!localProfile.remoteId)return;
+    if(!remoteProfileIds.has(String(localProfile.remoteId))){
+     delete S.u[localId];
+     Object.keys(S.accounts||{}).forEach(accountId=>{
+      const account=S.accounts[accountId];
+      if(Array.isArray(account.profiles))account.profiles=account.profiles.filter(id=>String(id)!==String(localId));
+     });
+     if(S.currentProfileId&&String(S.currentProfileId)===String(localId))S.currentProfileId=null;
+    }
+   });
    pr.data.forEach(p=>{
     const remoteUserCleanup=String(p.username||'').replace(/^@/,'').trim().toLowerCase();
     const remoteNameCleanup=String(p.nome||'').replace(/^@/,'').trim().toLowerCase();
