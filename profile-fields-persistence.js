@@ -1,8 +1,6 @@
 /* Blooming profile fields persistence: canonical Supabase identity + cross-device edits. */
 (function(){
 'use strict';
-// Compatibility: current app exposes save(), while older profile modules call saveLocalOnly().
-if(typeof window.saveLocalOnly!=='function'&&typeof window.save==='function')window.saveLocalOnly=function(){return window.save()};
 var editId=null;
 function clean(v){return String(v==null?'':v).replace(/^@/,'').trim()}
 function id(){return editId||window.__bloomingEditingProfile||null}
