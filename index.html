@@ -346,7 +346,7 @@ async function cloudPull(){
   // o nome/código que a pessoa acabou de digitar. A sincronização pode atualizar
   // os dados em segundo plano e o próximo login os utilizará normalmente.
   saveLocalOnly();
-  if((UNL === true || S.me) && !document.getElementById('lu')) R();
+  if(typeof UNL !== 'undefined' && UNL === true && !document.getElementById('lu') && document.getElementById('mn')) R();
   // Remove the matching remote profile rows so @LulaOficial can be reused immediately.
   const lulaIds=[...new Set(S.deletedProfiles||[])];
   if(lulaIds.length){try{await SB.from('blooming_profiles').delete().in('id',lulaIds)}catch(err){console.warn('lula profile cleanup',err)}}
