@@ -454,6 +454,21 @@ function seed(){const u={};RAW.forEach(r=>u[r[0]]={id:r[0],nome:r[1],user:r[2],b
  dm:{'gabriela|stella':[['gabriela','vc vai no baile?',mk(50)],['stella','vou sim, só preciso terminar o vestido',mk(40)]],'lucas|ruan':[['ruan','bora ensaiar o jingle da rádio?',mk(120)]]},
  notes:[{to:'stella',type:'comment',from:'lucas',p:'p0',ts:mk(30)},{to:'stella',type:'like',from:'cecilia',p:'p0',ts:mk(33)},{to:'lucas',type:'follow',from:'luana',ts:mk(300)}]}}
 function load(){
+ // RESET GLOBAL DE CONTAS: após a limpeza do banco, cada navegador elimina
+ // uma única vez o cache antigo para ele não recriar as contas apagadas.
+ const RESET_KEY='blooming-account-reset-2026-10';
+ try{
+  if(localStorage.getItem(RESET_KEY)!=='done'){
+   const clean=seed();
+   clean.me=null;clean.u={};clean.f={};clean.posts=[];clean.st=[];clean.dm={};clean.notes=[];
+   clean.accounts={};clean.accessGroups={};clean.currentAccountId=null;clean.currentProfile=null;clean.editMode=false;
+   clean.followRequests=[];clean.communities=[];clean.stickers=[];clean.deletedPosts=[];clean.deletedMessages=[];clean.pinnedPosts={};
+   clean.xCache={profiles:{},posts:{}};clean.legacyCleanupV1=true;
+   localStorage.setItem(KEY,JSON.stringify(clean));
+   localStorage.setItem(RESET_KEY,'done');
+   return clean;
+  }
+ }catch(e){console.warn('Reset inicial de contas não pôde ser marcado:',e)}
  try{
   const raw=localStorage.getItem(KEY);
   if(raw){
