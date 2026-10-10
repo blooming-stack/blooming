@@ -1563,41 +1563,4 @@ try{
 setInterval(()=>{try{runAutomations()}catch(e){console.warn('Automação:',e)}},60000);
 </script><script src="./profile-media-v2.js"></script>
 </body></html>
-<script id="blooming-login-fix-2026-10-05">
-(function(){
-  if(window.__BLFIX)return;window.__BLFIX=true;
-  document.addEventListener('click',async function(e){
-    const el=e.target.closest('[data-a]');if(!el)return;
-    if(el.dataset.a==='forgot'){
-      e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
-      if(typeof md!=='function'){alert('Recarregue o Blooming e tente novamente.');return;}
-      md('<h2>Esqueci meu código</h2><p class="mut">Informe o nome da conta e os dados de recuperação salvos.</p><input class="fi" id="fixrn" placeholder="Nome da conta"><input class="fi" id="fixrc" placeholder="E-mail ou telefone"><p id="fixre" class="tg"></p><button class="b" id="fixgo">Continuar</button>');
-      const b=document.querySelector('#fixgo');if(!b)return;
-      b.onclick=function(){
-        const n=(document.querySelector('#fixrn').value||'').trim().toLowerCase(),c=(document.querySelector('#fixrc').value||'').trim().toLowerCase();
-        let a=Object.values(S.accounts||{}).find(q=>String(q.nome||'').trim().toLowerCase()===n);
-        if(!a&&n==='ana laura')a=S.accounts.ana;if(!a&&n==='alana aquino')a=S.accounts.alana;
-        if(!a){document.querySelector('#fixre').textContent='Conta não encontrada neste dispositivo.';return;}
-        const r=a.recovery||{},ok=c&&((r.email||'').toLowerCase()===c||String(r.phone||'').replace(/\D/g,'')===c.replace(/\D/g,''));
-        if(!ok){document.querySelector('#fixre').textContent='Os dados de recuperação não conferem.';return;}
-        const z=prompt('Digite o novo código:');if(!z||z.length<4){alert('Use pelo menos 4 caracteres.');return;}
-        a.pw=pwh(z);if(a.id==='ana')S.accessGroups.ana.h=a.pw;if(a.id==='alana')S.accessGroups.alana.h=a.pw;
-        saveLocalOnly();document.querySelector('#md').close();alert('Código alterado. Você já pode entrar novamente.');
-      };return;
-    }
-    if(el.dataset.a!=='li')return;
-    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
-    const n=(document.querySelector('#lu').value||'').trim(),c=document.querySelector('#lp').value||'',h=pwh(c),nl=n.toLowerCase(),err=document.querySelector('#le');
-    if(!n||!c){if(err)err.textContent='Digite seu nome e código.';return;}
-    try{
-      if(nl==='ana laura'&&h===ANA_ACCESS_HASH){accessMode='ana';UNL=true;S.currentAccountId='ana';S.me=null;saveLocalOnly();unlockScreen(true);return;}
-      const ag=S.accessGroups&&S.accessGroups.alana;
-      if(nl==='alana aquino'&&ag&&h===ag.h){accessMode='alana';UNL=true;S.currentAccountId='alana';S.me=null;saveLocalOnly();unlockScreen(true);return;}
-      let a=Object.values(S.accounts||{}).find(q=>String(q.nome||'').trim().toLowerCase()===nl&&q.pw===h);
-      if(!a&&CLOUD_ON&&SB){const q=await SB.from('blooming_accounts').select('id,nome,pw_hash').ilike('nome',n).limit(20);if(q.error)throw q.error;a=(q.data||[]).find(q=>q.pw_hash===h);if(a){S.accounts[a.id]=S.accounts[a.id]||{id:a.id,nome:a.nome,pw:h,profiles:[]};S.accounts[a.id].nome=a.nome;S.accounts[a.id].pw=h;}}
-      if(a){accessMode='normal';UNL=true;S.currentAccountId=a.id;S.me=null;S.editMode=false;saveLocalOnly();unlockScreen(true);setTimeout(()=>typeof safeCloudPull==='function'&&safeCloudPull('login'),300);return;}
-      if(err)err.textContent='Nome ou código incorretos.';
-    }catch(q){console.error(q);if(err)err.textContent='Não foi possível concluir o login. Tente novamente.';}
-  },true);
-})();
-</script>
+
