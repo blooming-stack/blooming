@@ -91,15 +91,8 @@
     }catch(_){ }
   }
 
-  document.addEventListener('click',function(ev){
-    var b=ev.target&&ev.target.closest?ev.target.closest('#md [data-m="x"]'):null;
-    if(!b) return;
-    var d=document.getElementById('md'); if(!d) return;
-    ev.preventDefault(); ev.stopImmediatePropagation();
-    try{ if(d.open) d.close(); else d.removeAttribute('open'); }catch(_){ d.removeAttribute('open'); }
-    setTimeout(refreshActiveProfile,0);
-    setTimeout(refreshActiveProfile,100);
-  },true);
+  // O fechamento do diálogo fica a cargo dos controles nativos do app.
+  // Não interceptar o X aqui: isso impedia o handler de Configurações de executar.
 
   hookEdit();
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){hookEdit();setTimeout(hookEdit,300);setTimeout(hookEdit,1200);});
