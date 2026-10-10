@@ -325,16 +325,23 @@ async function cloudPull(){
     if(p.account_id){const a=S.accounts[p.account_id]||(S.accounts[p.account_id]={id:p.account_id,nome:finalName||'Conta',pw:'',profiles:[],legacy:false});a.profiles=Array.isArray(a.profiles)?a.profiles:[];if(!a.profiles.includes(targetId))a.profiles.push(targetId)}
    });
   }
-  // Reconnect the local Ana Laura account to the remote Ana Laura account.
+  // Reconnecte a conta especial Ana Laura mesmo quando o banco contém contas
+  // antigas duplicadas ("Ana Laura" e "Ana Laura 1"). A seleção anterior usava
+  // o primeiro resultado, que podia não ser a conta à qual os perfis novos foram ligados.
   try{
-   const remoteAna=(Array.isArray(ar.data)?ar.data:[]).find(isAnaCloudAccount);
-   if(remoteAna){
+   const remoteAnaAccounts=(Array.isArray(ar.data)?ar.data:[]).filter(a=>{
+    const n=String(a.nome||'').trim().toLowerCase();
+    return n==='ana'||n==='ana laura'||n==='ana laura 1';
+   });
+   if(remoteAnaAccounts.length){
+    const remoteAna=remoteAnaAccounts.find(a=>String(a.id)==='ana')||remoteAnaAccounts[0];
+    const remoteAnaIds=new Set(remoteAnaAccounts.map(a=>String(a.id)));
     const localAna=S.accounts.ana||(S.accounts.ana={id:'ana',nome:'Ana Laura',pw:ANA_ACCESS_HASH,profiles:[],special:'ana'});
     localAna.remoteId=remoteAna.id;
+    localAna.profiles=Array.isArray(localAna.profiles)?localAna.profiles:[];
     Object.values(S.u||{}).forEach(u=>{
-      if(String(u.user||'').replace(/^@/,'').toLowerCase()==='nalau' || u.accountId===remoteAna.id){
+      if(String(u.user||'').replace(/^@/,'').toLowerCase()==='nalau' || remoteAnaIds.has(String(u.accountId))){
         u.accountId='ana';
-        localAna.profiles=Array.isArray(localAna.profiles)?localAna.profiles:[];
         if(!localAna.profiles.includes(u.id))localAna.profiles.push(u.id);
       }
     });
