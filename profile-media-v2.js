@@ -25,6 +25,7 @@ function patchEditor(){if(window.__bloomingPersistenceEditor)return;window.__blo
 /* LOGIN HOTFIX: the original app starts a cloud pull during boot. A pull could call view()/R()
    while the access form was being typed, destroying #lp and making the login appear to clear itself. */
 (function loginHotfix(){
+  if(typeof UNL === 'undefined'){ try{ window.UNL = true; }catch(_){} }
   document.addEventListener('click',async function(e){
     var el=e.target.closest&&e.target.closest('[data-a="li"]');
     if(!el) return;
