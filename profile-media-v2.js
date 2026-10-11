@@ -60,7 +60,7 @@ function patchEditor(){if(window.__bloomingPersistenceEditor)return;window.__blo
     unlockScreen(true);
     setTimeout(function(){try{safeCloudPull('login')}catch(ex){console.warn('login pull',ex)}},250);
   },true);
-})();
+
 
 function boot(){normalize();patchEditor();window.__bloomingProfileSync=window.__bloomingProfileSync||{};Object.keys(S.u||{}).forEach(function(id){window.__bloomingProfileSync[id]=profileSignature(S.u[id])});setTimeout(function(){if(UNL){syncProfiles();syncPosts()}},1800);setTimeout(function(){if(UNL){syncProfiles();syncPosts()}},6000);setInterval(function(){if(document.visibilityState==='visible'&&UNL)flushDirtyProfiles()},1200);document.addEventListener('visibilitychange',function(){if(!document.hidden&&UNL){syncProfiles();syncPosts()}});window.addEventListener('pageshow',function(){if(UNL){syncProfiles();syncPosts()}});links(document)}
 window.BloomingProfileMediaV2={profile:profileUrl,post:postUrl,code:postCode,sync:syncProfiles,syncPicker:function(){return syncProfiles()}};window.BloomingPostLinks={profile:profileUrl,post:postUrl,code:postCode};
