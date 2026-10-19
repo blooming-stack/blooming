@@ -72,3 +72,17 @@ function boot(){setTimeout(install,900);setTimeout(install,2200);setInterval(fun
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 new MutationObserver(function(){install()}).observe(document.documentElement,{childList:true,subtree:true});
 })();
+
+/* Blooming profile canonical media/fields save: explicit final upsert after the editor closes. */
+(function(){
+'use strict';
+var URL='https://eulxkpxjwhwknegvhjsv.supabase.co',KEY='sb_publishable_LUkge3vFRRiJDVombyvkig_NyBjR-9O',client=null;
+function getClient(){try{if(client)return client;if(window.SB)return window.SB;if(window.supabase&&window.supabase.createClient){client=window.supabase.createClient(URL,KEY);return client}}catch(_){}return null}
+function aid(){try{return S&&S.currentAccountId||''}catch(_){return ''}}
+function profile(uid){try{return S&&S.u&&S.u[uid]||null}catch(_){return null}}
+function row(u){return {id:u.id,account_id:u.accountId||aid(),nome:String(u.nome||''),username:String(u.user||u.username||'').replace(/^@/,''),bio:String(u.bio||''),loc:String(u.loc||''),cor:String(u.cor||''),emo:String(u.emo||''),foto:String(u.foto||''),capa:String(u.capa||''),verificado:!!u.verificado,privada:!!u.privada,seg:Number(u.seg)||0,sgd:Number(u.sgd)||0,updated_at:new Date().toISOString()}}
+async function save(uid){var u=profile(uid);if(!u||!u.accountId)return false;var c=getClient();if(!c)return false;var r=await c.from('blooming_profiles').upsert(row(u),{onConflict:'id'});if(r.error){console.warn('Blooming canonical profile upsert',r.error);return false}u.__syncDirty=false;u.updatedAt=Date.now();try{if(typeof saveLocalOnly==='function')saveLocalOnly()}catch(_){}return true}
+function watch(){if(window.__bloomingCanonicalProfileWatch)return;window.__bloomingCanonicalProfileWatch=true;document.addEventListener('click',function(e){var b=e.target&&e.target.closest&&e.target.closest('[data-m="s"]');if(!b)return;var uid=window.__bloomingEditingProfile||null;setTimeout(function(){if(!uid)return;save(uid)},1200)},false)}
+function boot(){watch();setTimeout(watch,500);setTimeout(watch,1500)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
