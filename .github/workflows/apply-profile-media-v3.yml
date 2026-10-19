@@ -1,44 +1,10 @@
-name: Apply Blooming profile media v5
+name: Legacy Blooming profile media patch (disabled)
 
 on:
-  push:
-    paths-ignore:
-      - 'index.html'
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
-  patch-index:
+  disabled:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Add profile persistence scripts
-        shell: python
-        run: |
-          from pathlib import Path
-          p = Path('index.html')
-          s = p.read_text(encoding='utf-8')
-          scripts = [
-              '<script defer src="./profile-media-v4.js?v=5"></script>',
-              '<script defer src="./profile-fields-persistence.js?v=1"></script>'
-          ]
-          for script in scripts:
-              if script not in s:
-                  if '</head>' not in s:
-                      raise SystemExit('No </head> found; refusing to modify index.html')
-                  s = s.replace('</head>', script + '</head>', 1)
-          p.write_text(s, encoding='utf-8')
-
-      - name: Commit
-        shell: bash
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html
-          git diff --cached --quiet && exit 0
-          git commit -m 'Load direct profile fields persistence fix [skip ci]'
-          git push
+      - run: echo "Legacy profile-media patch disabled; current profile persistence code is maintained directly."
