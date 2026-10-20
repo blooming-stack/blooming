@@ -39,6 +39,11 @@ jobs:
             echo 'Create it in Settings > Secrets and variables > Actions > New repository secret.'
             exit 1
           fi
+          if [[ "$SUPABASE_PUBLISHABLE_KEY" != sb_publishable_* ]]; then
+            echo 'ERROR: BLOOMING_SUPABASE_PUBLISHABLE_KEY does not contain a Supabase publishable key.'
+            echo 'Replace the repository secret with the current sb_publishable_... key from Supabase.'
+            exit 1
+          fi
           python - <<'PY'
           from pathlib import Path
           import os, json
