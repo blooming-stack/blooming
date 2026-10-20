@@ -1,4 +1,4 @@
--- BLOOMING 0.4 — acesso + perfis + mídia + seguidores
+-- BLOOMING 0.5 — acesso + perfis + mídia + seguidores + publicações
 create extension if not exists pgcrypto;
 
 create table if not exists public.blooming_access (
@@ -36,9 +36,22 @@ create table if not exists public.blooming_follows (
 create index if not exists blooming_follows_follower_idx on public.blooming_follows(follower_profile_id);
 create index if not exists blooming_follows_following_idx on public.blooming_follows(following_profile_id);
 
+create table if not exists public.blooming_posts (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references public.blooming_profiles(id) on delete cascade,
+  caption text not null default '',
+  media_url text,
+  media_type text,
+  created_at timestamptz not null default now(),
+  constraint blooming_posts_media_type check (media_type is null or media_type in ('image','video'))
+);
+
+create index if not exists blooming_posts_profile_idx on public.blooming_posts(profile_id, created_at desc);
+
 alter table public.blooming_access enable row level security;
 alter table public.blooming_profiles enable row level security;
 alter table public.blooming_follows enable row level security;
+alter table public.blooming_posts enable row level security;
 
 drop policy if exists "blooming_access_insert" on public.blooming_access;
 drop policy if exists "blooming_access_select" on public.blooming_access;
@@ -60,6 +73,15 @@ drop policy if exists "blooming_follows_delete" on public.blooming_follows;
 create policy "blooming_follows_insert" on public.blooming_follows for insert to anon, authenticated with check (true);
 create policy "blooming_follows_select" on public.blooming_follows for select to anon, authenticated using (true);
 create policy "blooming_follows_delete" on public.blooming_follows for delete to anon, authenticated using (true);
+
+drop policy if exists "blooming_posts_insert" on public.blooming_posts;
+drop policy if exists "blooming_posts_select" on public.blooming_posts;
+drop policy if exists "blooming_posts_update" on public.blooming_posts;
+drop policy if exists "blooming_posts_delete" on public.blooming_posts;
+create policy "blooming_posts_insert" on public.blooming_posts for insert to anon, authenticated with check (true);
+create policy "blooming_posts_select" on public.blooming_posts for select to anon, authenticated using (true);
+create policy "blooming_posts_update" on public.blooming_posts for update to anon, authenticated using (true) with check (true);
+create policy "blooming_posts_delete" on public.blooming_posts for delete to anon, authenticated using (true);
 
 -- Storage: crie o bucket 'blooming-media' no painel do Supabase como público.
 -- Os arquivos são organizados por account_id/profile_id.
