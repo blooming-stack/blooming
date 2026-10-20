@@ -27,10 +27,34 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Prepare Blooming runtime configuration
+        env:
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.BLOOMING_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          mkdir -p _site
+          cp -R . _site/
+          if [ -n "$SUPABASE_PUBLISHABLE_KEY" ]; then
+            python - <<'PY'
+          from pathlib import Path
+          import os, json
+          p=Path('_site/index.html')
+          s=p.read_text(encoding='utf-8')
+          url='https://eulxkpxjwhwknegvhjsv.supabase.co'
+          key=os.environ['SUPABASE_PUBLISHABLE_KEY']
+          payload=json.dumps({'url':url,'key':key},separators=(',',':'))
+          boot='<script>localStorage.setItem("blooming:v08:supabase",'+json.dumps(payload)+' );</script>'
+          s=s.replace('<script>',boot+'<script>',1)
+          p.write_text(s,encoding='utf-8')
+          PY
+          else
+            echo 'BLOOMING_SUPABASE_PUBLISHABLE_KEY is not configured; the site will keep its manual configuration screen.'
+          fi
+          rm -rf _site/.git _site/.github
+
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
       - name: Deploy
         id: deployment
