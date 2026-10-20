@@ -1,89 +1,18 @@
 <!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="robots" content="noindex,nofollow">
-  <title>Blooming</title>
-  <style>
-    :root{--bg:#f7f4f8;--card:#fff;--ink:#17131a;--mut:#746c78;--line:#e5dfe7;--accent:#e83370;--on:#fff}
-    *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
-    button,input{font:inherit}button{cursor:pointer}.app{min-height:100vh;display:grid;place-items:center;padding:24px}.card{width:min(430px,100%);background:var(--card);border:1px solid var(--line);border-radius:28px;padding:32px;box-shadow:0 18px 60px #25152d12}.brand{font-size:38px;font-weight:900;letter-spacing:-1.5px;margin-bottom:8px}.sub{color:var(--mut);margin:0 0 28px}.field{display:grid;gap:7px;margin:14px 0}.field label{font-size:14px;font-weight:700}.field input{width:100%;border:1px solid var(--line);border-radius:14px;padding:13px 14px;background:var(--bg);outline:none}.field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #e8337020}.primary{width:100%;border:0;border-radius:14px;padding:13px 16px;background:var(--accent);color:var(--on);font-weight:800;margin-top:8px}.secondary{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px 16px;background:transparent;font-weight:700;margin-top:10px}.link{display:block;text-align:center;color:var(--accent);font-weight:700;margin-top:18px;border:0;background:none;width:100%}.hidden{display:none!important}.msg{min-height:22px;margin:14px 0 0;color:#b42318;font-size:14px}.success{color:#16834b}.home{width:min(900px,100%);background:var(--card);border:1px solid var(--line);border-radius:28px;padding:28px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center}.pill{border:1px solid var(--line);border-radius:999px;background:transparent;padding:9px 14px}.setup{margin-top:24px;border:1px solid var(--line);border-radius:20px;padding:20px;background:var(--bg)}.setup h2{margin:0 0 6px}.setup p{color:var(--mut);margin-top:0}.status{font-size:13px;color:var(--mut);margin-top:10px;word-break:break-word}.tabs{display:flex;gap:8px;margin-top:20px}.tabs button{flex:1;border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--card)}.tabs button.active{background:var(--accent);color:#fff;border-color:var(--accent)}@media(max-width:520px){.app{padding:12px}.card,.home{border-radius:22px;padding:22px}}
-  </style>
-</head>
-<body>
-<div id="app" class="app"></div>
-<script>
-(() => {
-  'use strict';
-  const KEY='blooming:v01:session';
-  const state={session:null,configured:false,supabase:null};
-  const $=s=>document.querySelector(s);
-  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  function getCfg(){try{return JSON.parse(localStorage.getItem('blooming:v01:supabase')||'null')}catch{return null}}
-  function saveSession(id){localStorage.setItem(KEY,JSON.stringify({accessId:id}))}
-  function clearSession(){localStorage.removeItem(KEY);state.session=null}
-  function readSession(){try{const x=JSON.parse(localStorage.getItem(KEY)||'null');return x?.accessId||null}catch{return null}}
-  async function sha256(value){const bytes=new TextEncoder().encode(value);const hash=await crypto.subtle.digest('SHA-256',bytes);return [...new Uint8Array(hash)].map(x=>x.toString(16).padStart(2,'0')).join('')}
-  function loadSupabase(){
-    const cfg=getCfg();
-    if(!cfg?.url||!cfg?.key)return false;
-    state.configured=true;
-    if(window.supabase?.createClient){state.supabase=window.supabase.createClient(cfg.url,cfg.key);return true}
-    return false;
-  }
-  function renderLogin(){
-    $('#app').innerHTML=`<section class="card"><div class="brand">Blooming</div><p class="sub">Entre na sua conta</p><form id="login"><div class="field"><label for="name">Nome da conta</label><input id="name" autocomplete="username" required></div><div class="field"><label for="code">Código de acesso</label><input id="code" type="password" inputmode="numeric" autocomplete="current-password" required></div><button class="primary">Entrar</button><div id="msg" class="msg"></div></form><button id="forgot" class="link">Esqueci meu código</button><button id="create" class="secondary">Criar acesso</button></section>`;
-    $('#login').onsubmit=login;$('#create').onclick=renderCreate;$('#forgot').onclick=forgot;
-  }
-  function renderCreate(){
-    $('#app').innerHTML=`<section class="card"><div class="brand">Blooming</div><p class="sub">Crie seu acesso</p><form id="createForm"><div class="field"><label for="name">Nome da conta</label><input id="name" maxlength="80" required></div><div class="field"><label for="code">Código de acesso</label><input id="code" type="password" inputmode="numeric" minlength="4" maxlength="32" required></div><div class="field"><label for="code2">Confirme o código</label><input id="code2" type="password" inputmode="numeric" minlength="4" maxlength="32" required></div><button class="primary">Criar acesso</button><div id="msg" class="msg"></div></form><button id="back" class="link">Voltar para entrar</button></section>`;
-    $('#createForm').onsubmit=createAccount;$('#back').onclick=renderLogin;
-  }
-  async function login(e){
-    e.preventDefault();const msg=$('#msg');msg.textContent='';
-    if(!loadSupabase()){msg.textContent='Configure o Supabase antes de entrar.';return}
-    const name=$('#name').value.trim();const code=$('#code').value;
-    const hash=await sha256(code);
-    const {data,error}=await state.supabase.from('blooming_access').select('id,display_name').eq('name_key',name.toLowerCase()).eq('code_hash',hash).maybeSingle();
-    if(error||!data){msg.textContent='Nome da conta ou código incorreto.';return}
-    saveSession(data.id);state.session=data;renderHome();
-  }
-  async function createAccount(e){
-    e.preventDefault();const msg=$('#msg');msg.textContent='';
-    if(!loadSupabase()){msg.textContent='Configure o Supabase antes de criar o acesso.';return}
-    const name=$('#name').value.trim();const a=$('#code').value;const b=$('#code2').value;
-    if(a!==b){msg.textContent='Os códigos não são iguais.';return}
-    if(a.length<4){msg.textContent='O código precisa ter pelo menos 4 caracteres.';return}
-    const hash=await sha256(a);
-    const {data,error}=await state.supabase.from('blooming_access').insert({display_name:name,name_key:name.toLowerCase(),code_hash:hash}).select('id,display_name').single();
-    if(error){msg.textContent=error.code==='23505'?'Esse nome de conta já está em uso.':error.message;return}
-    saveSession(data.id);state.session=data;renderHome();
-  }
-  function forgot(){
-    $('#app').innerHTML=`<section class="card"><div class="brand">Blooming</div><p class="sub">Recuperação de acesso</p><p class="sub">Nesta primeira versão, a recuperação será ligada ao método seguro de recuperação que definiremos junto ao Supabase. O botão já fica reservado no fluxo desde agora.</p><button class="primary" id="back">Voltar</button></section>`;
-    $('#back').onclick=renderLogin;
-  }
-  function renderHome(){
-    const name=state.session?.display_name||'sua conta';
-    $('#app').innerHTML=`<section class="home"><div class="top"><div><div class="brand">Blooming</div><p class="sub">Fundação 0.1 — acesso conectado</p></div><button id="logout" class="pill">Sair</button></div><div class="setup"><h2>Conta conectada</h2><p>O acesso <b>${esc(name)}</b> está autenticado. Nesta etapa, não existe feed nem perfil ainda: estamos validando somente a fundação.</p><div class="status">Sessão: ${esc(state.session?.id||'')}<br>Armazenamento: Supabase</div></div></section>`;
-    $('#logout').onclick=()=>{clearSession();renderLogin()};
-  }
-  function configScreen(){
-    $('#app').innerHTML=`<section class="card"><div class="brand">Blooming</div><p class="sub">Configuração inicial do Supabase</p><div class="field"><label for="url">Project URL</label><input id="url" placeholder="https://seu-projeto.supabase.co"></div><div class="field"><label for="key">Publishable / anon key</label><input id="key" placeholder="sua chave"></div><button class="primary" id="save">Salvar configuração</button><div id="msg" class="msg"></div></section>`;
-    $('#save').onclick=()=>{const url=$('#url').value.trim(),key=$('#key').value.trim();if(!url||!key){$('#msg').textContent='Preencha os dois campos.';return}localStorage.setItem('blooming:v01:supabase',JSON.stringify({url,key}));location.reload()};
-  }
-  async function boot(){
-    const cfg=getCfg();
-    if(!cfg){configScreen();return}
-    const loaded=loadSupabase();
-    if(!loaded){configScreen();return}
-    const sid=readSession();
-    if(sid){const {data}=await state.supabase.from('blooming_access').select('id,display_name').eq('id',sid).maybeSingle();if(data){state.session=data;renderHome();return}clearSession()}
-    renderLogin();
-  }
-  const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';script.onload=boot;script.onerror=()=>{document.getElementById('app').innerHTML='<section class="card"><div class="brand">Blooming</div><p class="sub">Não foi possível carregar o cliente do Supabase.</p></section>'};document.head.appendChild(script);
-})();
-</script>
-</body>
-</html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow"><title>Blooming</title><style>
+:root{--bg:#f7f4f8;--card:#fff;--ink:#17131a;--mut:#746c78;--line:#e5dfe7;--accent:#e83370;--on:#fff}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif}.app{min-height:100vh;display:grid;place-items:center;padding:20px}.card{width:min(460px,100%);background:var(--card);border:1px solid var(--line);border-radius:26px;padding:28px;box-shadow:0 18px 60px #25152d12}.brand{font-size:38px;font-weight:900;letter-spacing:-1.5px}.sub{color:var(--mut)}label{font-size:14px;font-weight:700}.field{display:grid;gap:7px;margin:14px 0}.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:13px;padding:12px;background:var(--bg);color:var(--ink)}button{font:inherit;cursor:pointer}.primary,.secondary,.pill{border-radius:13px;padding:12px 16px;font-weight:800}.primary{width:100%;border:0;background:var(--accent);color:#fff}.secondary,.pill{border:1px solid var(--line);background:transparent}.secondary{width:100%;margin-top:10px}.link{display:block;width:100%;border:0;background:none;color:var(--accent);font-weight:800;margin-top:16px}.msg{min-height:22px;margin-top:12px;font-size:14px;color:#b42318}.success{color:#16834b}.home{width:min(920px,100%);background:var(--card);border:1px solid var(--line);border-radius:26px;padding:28px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px}.profiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:18px;margin-top:28px}.profile{border:0;background:none;text-align:center;color:inherit}.avatar{width:120px;height:120px;border-radius:18px;margin:auto;display:grid;place-items:center;font-size:48px;color:#fff;overflow:hidden}.avatar img{width:100%;height:100%;object-fit:cover}.profile b{display:block;margin-top:10px}.profile small{color:var(--mut)}.add{border:2px dashed var(--line);background:transparent;color:var(--mut)}.selected{outline:3px solid var(--accent);outline-offset:3px}.panel{margin-top:24px;border-top:1px solid var(--line);padding-top:22px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.back{margin-bottom:16px}@media(max-width:560px){.app{padding:10px}.card,.home{padding:20px;border-radius:20px}.profiles{grid-template-columns:repeat(2,1fr)}.avatar{width:100px;height:100px}}
+</style></head><body><div id="app" class="app"></div><script>
+(()=>{'use strict';const KEY='blooming:v02:session',CFG='blooming:v02:supabase';const st={db:null,account:null,profiles:[],profile:null};const $=s=>document.querySelector(s);const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));const cfg=()=>{try{return JSON.parse(localStorage.getItem(CFG)||'null')}catch{return null}};const session=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch{return null}};const setSession=x=>localStorage.setItem(KEY,JSON.stringify(x));const clear=()=>localStorage.removeItem(KEY);
+function supabase(){const c=cfg();if(!c?.url||!c?.key)return false;if(!window.supabase?.createClient)return false;st.db=window.supabase.createClient(c.url,c.key);return true}
+function config(){document.querySelector('#app').innerHTML=`<section class="card"><div class="brand">Blooming</div><p class="sub">Configuração inicial do Supabase</p><div class="field"><label>Project URL</label><input id="url" placeholder="https://seu-projeto.supabase.co"></div><div class="field"><label>Publishable / anon key</label><input id="key" placeholder="sua chave"></div><button class="primary" id="save">Salvar configuração</button><div id="msg" class="msg"></div></section>`;$('#save').onclick=()=>{let u=$('#url').value.trim(),k=$('#key').value.trim();if(!u||!k){$('#msg').textContent='Preencha os dois campos.';return}localStorage.setItem(CFG,JSON.stringify({url:u,key:k}));location.reload()}}
+async function hash(v){let h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v));return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function login(){app.innerHTML=`<section class="card"><div class="brand">Blooming</div><p class="sub">Entre na sua conta</p><form id="f"><div class="field"><label>Nome da conta</label><input id="name" autocomplete="username" required></div><div class="field"><label>Código de acesso</label><input id="code" type="password" required></div><button class="primary">Entrar</button><div id="msg" class="msg"></div></form><button class="link" id="forgot">Esqueci meu código</button><button class="secondary" id="new">Criar acesso</button></section>`;$('#f').onsubmit=async e=>{e.preventDefault();if(!supabase()){msg.textContent='Configure o Supabase antes de entrar.';return}let n=$('#name').value.trim(),h=await hash($('#code').value);let r=await st.db.from('blooming_access').select('id,display_name').eq('name_key',n.toLowerCase()).eq('code_hash',h).maybeSingle();if(r.error||!r.data){msg.textContent='Nome da conta ou código incorreto.';return}st.account=r.data;setSession({accountId:r.data.id});await loadProfiles();};$('#new').onclick=create;$('#forgot').onclick=()=>alert('A recuperação de código será ligada ao método seguro do Supabase na próxima etapa.')}
+function create(){app.innerHTML=`<section class="card"><div class="brand">Blooming</div><p class="sub">Crie seu acesso</p><form id="f"><div class="field"><label>Nome da conta</label><input id="name" maxlength="80" required></div><div class="field"><label>Código</label><input id="code" type="password" minlength="4" maxlength="32" required></div><div class="field"><label>Confirme o código</label><input id="code2" type="password" minlength="4" maxlength="32" required></div><button class="primary">Criar acesso</button><div id="msg" class="msg"></div></form><button class="link" id="back">Voltar</button></section>`;$('#back').onclick=login;$('#f').onsubmit=async e=>{e.preventDefault();if(!supabase()){msg.textContent='Configure o Supabase antes de criar o acesso.';return}let n=$('#name').value.trim(),a=$('#code').value,b=$('#code2').value;if(a!==b){msg.textContent='Os códigos não são iguais.';return}let h=await hash(a),r=await st.db.from('blooming_access').insert({display_name:n,name_key:n.toLowerCase(),code_hash:h}).select('id,display_name').single();if(r.error){msg.textContent=r.error.code==='23505'?'Esse nome já está em uso.':r.error.message;return}st.account=r.data;setSession({accountId:r.data.id});await loadProfiles()}}
+async function loadProfiles(){let r=await st.db.from('blooming_profiles').select('*').eq('account_id',st.account.id).order('created_at');st.profiles=r.data||[];picker()}
+function picker(){app.innerHTML=`<section class="home"><div class="top"><div><div class="brand">Blooming</div><p class="sub">Quem está usando?</p></div><button class="pill" id="logout">Sair</button></div><div class="profiles">${st.profiles.map(p=>`<button class="profile" data-id="${p.id}"><div class="avatar" style="background:${esc(p.color)}">${p.avatar_url?`<img src="${esc(p.avatar_url)}">`:esc(p.emoji||'🌷')}</div><b>${esc(p.display_name)}</b><small>@${esc(p.username)}</small></button>`).join('')}<button class="profile" id="add"><div class="avatar add">＋</div><b>+ criar perfil</b></button></div></section>`;document.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>selectProfile(b.dataset.id));$('#add').onclick=profileForm;$('#logout').onclick=()=>{clear();st.account=null;st.profile=null;login()}}
+async function selectProfile(id){st.profile=st.profiles.find(p=>p.id===id);profileHome()}
+function profileHome(){let p=st.profile;app.innerHTML=`<section class="home"><div class="top"><div><div class="brand">@${esc(p.username)}</div><p class="sub">Perfil selecionado</p></div><div><button class="pill" id="switch">Trocar perfil</button> <button class="pill" id="logout">Sair</button></div></div><div class="panel"><div class="avatar" style="background:${esc(p.color)}">${p.avatar_url?`<img src="${esc(p.avatar_url)}">`:esc(p.emoji)}</div><h2>${esc(p.display_name)}</h2><p>${esc(p.bio)||'<span class="sub">Sem bio.</span>'}</p><button class="primary" id="edit">Editar perfil</button></div></section>`;$('#switch').onclick=picker;$('#logout').onclick=()=>{clear();login()};$('#edit').onclick=()=>profileForm(p)}
+function profileForm(p=null){let x=p||{display_name:'',username:'',bio:'',color:'#E83370',emoji:'🌷',avatar_url:''};app.innerHTML=`<section class="card"><button class="pill back" id="back">← Voltar</button><div class="brand">${p?'Editar perfil':'Criar perfil'}</div><p class="sub">${p?'Altere os dados do perfil.':'Crie seu perfil. Nenhum perfil é criado automaticamente.'}</p><div class="field"><label>Nome</label><input id="name" maxlength="80" value="${esc(x.display_name)}"></div><div class="field"><label>@username</label><input id="user" maxlength="40" value="${esc(x.username)}" placeholder="ex: nalau"></div><div class="field"><label>Bio</label><textarea id="bio" maxlength="180" rows="3">${esc(x.bio)}</textarea></div><div class="grid"><div class="field"><label>Cor</label><input id="color" type="color" value="${esc(x.color)}"></div><div class="field"><label>Emoji</label><input id="emoji" maxlength="4" value="${esc(x.emoji)}"></div></div><div class="field"><label>URL da foto (temporário)</label><input id="avatar" value="${esc(x.avatar_url||'')}" placeholder="https://..."></div><button class="primary" id="save">Salvar</button><div id="msg" class="msg"></div></section>`;$('#back').onclick=()=>p?profileHome():picker();$('#save').onclick=async()=>{let name=$('#name').value.trim(),u=$('#user').value.trim().replace(/^@/,'').toLowerCase(),body={display_name:name,username:u,bio:$('#bio').value.trim(),color:$('#color').value,emoji:$('#emoji').value.trim()||'🌷',avatar_url:$('#avatar').value.trim()||null,account_id:st.account.id};if(!name||!u){msg.textContent='Nome e username são obrigatórios.';return}let r=p?await st.db.from('blooming_profiles').update(body).eq('id',p.id).eq('account_id',st.account.id):await st.db.from('blooming_profiles').insert(body);if(r.error){msg.textContent=r.error.code==='23505'?'Esse @username já está em uso.':r.error.message;return}await loadProfiles();if(p){st.profile=st.profiles.find(q=>q.id===p.id);profileHome()}}}
+async function boot(){if(!cfg()){config();return}if(!supabase()){config();return}let s=session();if(s?.accountId){let r=await st.db.from('blooming_access').select('id,display_name').eq('id',s.accountId).maybeSingle();if(r.data){st.account=r.data;await loadProfiles();return}clear()}login()}
+const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';sc.onload=boot;sc.onerror=()=>app.innerHTML='<section class="card"><div class="brand">Blooming</div><p>Não foi possível carregar o Supabase.</p></section>';document.head.appendChild(sc)
+})();</script></body></html>
