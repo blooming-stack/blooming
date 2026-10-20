@@ -1,4 +1,4 @@
--- BLOOMING 0.2 — acesso + perfis
+-- BLOOMING 0.3 — acesso + perfis + armazenamento de mídia
 create extension if not exists pgcrypto;
 
 create table if not exists public.blooming_access (
@@ -18,8 +18,11 @@ create table if not exists public.blooming_profiles (
   color text not null default '#E83370',
   emoji text not null default '🌷',
   avatar_url text,
+  cover_url text,
   created_at timestamptz not null default now()
 );
+
+alter table public.blooming_profiles add column if not exists cover_url text;
 
 alter table public.blooming_access enable row level security;
 alter table public.blooming_profiles enable row level security;
@@ -37,3 +40,6 @@ create policy "blooming_profiles_insert" on public.blooming_profiles for insert 
 create policy "blooming_profiles_select" on public.blooming_profiles for select to anon, authenticated using (true);
 create policy "blooming_profiles_update" on public.blooming_profiles for update to anon, authenticated using (true) with check (true);
 create policy "blooming_profiles_delete" on public.blooming_profiles for delete to anon, authenticated using (true);
+
+-- Storage: crie o bucket 'blooming-media' no painel do Supabase como público.
+-- Os arquivos são organizados por account_id/profile_id.
