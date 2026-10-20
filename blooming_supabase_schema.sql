@@ -1,6 +1,4 @@
--- BLOOMING 0.1 — fundação de acesso
--- Execute no Supabase SQL Editor antes de usar o aplicativo.
-
+-- BLOOMING 0.2 — acesso + perfis
 create extension if not exists pgcrypto;
 
 create table if not exists public.blooming_access (
@@ -11,26 +9,31 @@ create table if not exists public.blooming_access (
   created_at timestamptz not null default now()
 );
 
-alter table public.blooming_access enable row level security;
+create table if not exists public.blooming_profiles (
+  id uuid primary key default gen_random_uuid(),
+  account_id uuid not null references public.blooming_access(id) on delete cascade,
+  display_name text not null,
+  username text not null unique,
+  bio text not null default '',
+  color text not null default '#E83370',
+  emoji text not null default '🌷',
+  avatar_url text,
+  created_at timestamptz not null default now()
+);
 
--- 0.1 usa a chave publicável/anon apenas para o protótipo funcional.
--- As políticas abaixo permitem o fluxo de criação/login desta etapa.
--- Em seguida, a autenticação será migrada para um mecanismo de servidor/Edge Function,
--- evitando que hashes de códigos sejam consultáveis diretamente pelo cliente.
+alter table public.blooming_access enable row level security;
+alter table public.blooming_profiles enable row level security;
+
 drop policy if exists "blooming_access_insert" on public.blooming_access;
 drop policy if exists "blooming_access_select" on public.blooming_access;
+create policy "blooming_access_insert" on public.blooming_access for insert to anon, authenticated with check (true);
+create policy "blooming_access_select" on public.blooming_access for select to anon, authenticated using (true);
 
-create policy "blooming_access_insert"
-on public.blooming_access
-for insert
-to anon, authenticated
-with check (true);
-
-create policy "blooming_access_select"
-on public.blooming_access
-for select
-to anon, authenticated
-using (true);
-
--- Verificação rápida:
--- select id, display_name, name_key, created_at from public.blooming_access order by created_at desc;
+drop policy if exists "blooming_profiles_insert" on public.blooming_profiles;
+drop policy if exists "blooming_profiles_select" on public.blooming_profiles;
+drop policy if exists "blooming_profiles_update" on public.blooming_profiles;
+drop policy if exists "blooming_profiles_delete" on public.blooming_profiles;
+create policy "blooming_profiles_insert" on public.blooming_profiles for insert to anon, authenticated with check (true);
+create policy "blooming_profiles_select" on public.blooming_profiles for select to anon, authenticated using (true);
+create policy "blooming_profiles_update" on public.blooming_profiles for update to anon, authenticated using (true) with check (true);
+create policy "blooming_profiles_delete" on public.blooming_profiles for delete to anon, authenticated using (true);
