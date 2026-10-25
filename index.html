@@ -98,7 +98,7 @@ async function doLogin() {
   const name = $('#loginName').value.trim();
   const pass = $('#loginPass').value.trim();
   if (!name || !pass) return;
-  $('#loginError').textContent = 'Verificando...';
+  $('#loginError').textContent = 'Entrando...';
 
   const { data, error } = await sb.from('blooming_accounts').select('*').ilike('nome', name).eq('pw_hash', pass).single();
   
@@ -106,6 +106,14 @@ async function doLogin() {
     $('#loginError').textContent = 'Nome ou código incorretos.';
     return;
   }
+  
+  // ADICIONE ESTAS DUAS LINHAS AQUI:
+  localStorage.setItem('blooming_account', data.id);
+  localStorage.removeItem('blooming_me'); // Limpa o perfil anterior
+
+  S.accountId = data.id;
+  await loadProfiles();
+}
   
   S.accountId = data.id;
   await loadProfiles();
