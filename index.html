@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Blooming</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F3FB;--card:#fff;--ink:#1B1526;--mut:#6B6280;--line:#E4DEF0;--acc:#E8336F;--on:#fff}
+@media(prefers-color-scheme:dark){:root{--bg:#000;--card:#0b0b0b;--ink:#F5F5F5;--mut:#A7A7A7;--line:#252525;--acc:#FF5C8D;--on:#16080d}}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Figtree,system-ui,sans-serif}
+h1,h2,h3{font-family:'Bricolage Grotesque',sans-serif;margin:0}
+a{color:inherit;text-decoration:none}button,input,textarea{font:inherit;color:inherit}
+.b{border:0;border-radius:999px;background:var(--acc);color:var(--on);font-weight:700;padding:10px 20px;cursor:pointer}
+.b.g{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.fi{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--bg);margin:4px 0 10px;box-sizing:border-box}
+.lo{max-width:460px;margin:0 auto;padding:40px 20px}
+.sh{display:grid;grid-template-columns:250px minmax(0,600px);justify-content:center;min-height:100vh;margin:0 auto}
+.nv{position:sticky;top:0;height:100vh;padding:14px 12px;display:flex;flex-direction:column;gap:4px;border-right:1px solid var(--line)}
+.nv a,.nv button{display:flex;gap:14px;align-items:center;padding:11px 14px;border-radius:999px;font-size:1.15rem;background:none;border:0;cursor:pointer;color:var(--ink)}
+.nv a:hover,.nv button:hover{background:var(--card)}
+main{border-right:1px solid var(--line);min-height:100vh;padding-bottom:50px}
+.po{display:flex;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.av{width:44px;height:44px;border-radius:50%;background:#ddd;display:grid;place-items:center;font-size:1.2rem;overflow:hidden;flex:none}
+.av img{width:100%;height:100%;object-fit:cover}
+dialog{border:0;border-radius:20px;padding:20px;background:var(--card);color:var(--ink);width:min(400px,90vw)}
+dialog::backdrop{background:#0009}
+@media(max-width:700px){.sh{display:block}.nv{position:fixed;bottom:0;width:100%;height:auto;flex-direction:row;justify-content:space-around;border-right:0;border-top:1px solid var(--line);z-index:10;background:var(--card)}.nv span{display:none}main{border:0}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<dialog id="md"></dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// CONFIGURAÇÃO DO SEU NOVO SUPABASE
+const SUPABASE_URL = 'https://jzetzelxstyfzrjfnill.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6ZXR6ZWx4c3R5ZnpyamZuaWxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4ODQ3NjUsImV4cCI6MjEwODQ2MDc2NX0.x3ZmG-S1hluuLCqJHWHMo6oL8Iyjk2P_CQIsNFnggcA';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let S = { me: null, accountId: null, profiles: {}, posts: [], accounts: {} };
+const $ = s => document.querySelector(s);
+
+// --- LOGIN E CADASTRO ---
+function renderLogin() {
+  $('#app').innerHTML = `
+    <div class="lo">
+      <h1 style="font-size:3rem;margin-bottom:20px">Blooming</h1>
+      <p class="mut">Entre na sua conta</p>
+      <label>Nome da conta</label><input class="fi" id="loginName" placeholder="Ex: Ana Laura">
+      <label>Código de acesso</label><input class="fi" id="loginPass" type="password" placeholder="Seu código secreto">
+      <button class="b" style="width:100%;margin-top:10px" onclick="doLogin()">Entrar</button>
+      <button class="b g" style="width:100%;margin-top:10px" onclick="doSignup()">Criar conta</button>
+      <p id="loginError" style="color:red;margin-top:10px;font-size:0.9rem"></p>
+    </div>`;
+}
+
+async function doLogin() {
+  const name = $('#loginName').value.trim();
+  const pass = $('#loginPass').value.trim();
+  if (!name || !pass) return;
+  $('#loginError').textContent = 'Entrando...';
+
+  // Busca a conta no Supabase
+  const { data, error } = await sb.from('blooming_accounts').select('*').ilike('nome', name).eq('pw_hash', pass).single();
+  
+  if (error || !data) {
+    $('#loginError').textContent = 'Nome ou código incorretos.';
+    return;
+  }
+  
+  S.accountId = data.id;
+  await loadProfiles();
+}
+
+async function doSignup() {
+  const name = $('#loginName').value.trim();
+  const pass = $('#loginPass').value.trim();
+  if (!name || !pass) { $('#loginError').textContent = 'Preencha nome e código.'; return; }
+
+  $('#loginError').textContent = 'Criando conta...';
+  const id = 'a' + Date.now();
+  
+  // Cria a conta no Supabase
+  const { data, error } = await sb.from('blooming_accounts').insert([{ id, nome: name, pw_hash: pass }]).select().single();
+  
+  if (error) {
+    $('#loginError').textContent = 'Erro ao criar: ' + error.message;
+    return;
+  }
+  
+  S.accountId = data.id;
+  await loadProfiles();
+}
+
+// --- PERFIS ---
+async function loadProfiles() {
+  $('#app').innerHTML = `<div class="lo"><p>Carregando perfis...</p></div>`;
+  
+  const { data, error } = await sb.from('blooming_profiles').select('*').eq('account_id', S.accountId);
+  
+  if (error) { alert('Erro ao buscar perfis: ' + error.message); return; }
+  
+  S.profiles = {};
+  data.forEach(p => S.profiles[p.id] = p);
+  
+  renderProfilePicker();
+}
+
+function renderProfilePicker() {
+  const list = Object.values(S.profiles);
+  
+  let html = `<div class="lo"><h1>Quem está usando?</h1><div style="display:flex;gap:20px;flex-wrap:wrap;margin:20px 0">`;
+  
+  list.forEach(p => {
+    html += `
+      <div style="text-align:center;cursor:pointer" onclick="selectProfile('${p.id}')">
+        <div class="av" style="width:80px;height:80px;font-size:2rem;margin:0 auto">${p.emo || '🌸'}</div>
+        <p style="margin-top:8px;font-weight:bold">${p.nome}</p>
+        <p class="mut" style="font-size:0.8rem">@${p.username}</p>
+      </div>`;
+  });
+  
+  html += `
+      <div style="text-align:center;cursor:pointer" onclick="createNewProfile()">
+        <div class="av" style="width:80px;height:80px;font-size:2rem;margin:0 auto;border:2px dashed var(--line);background:transparent">+</div>
+        <p style="margin-top:8px">Criar perfil</p>
+      </div>
+    </div>
+    <button class="b g" onclick="logout()">Sair</button>
+  </div>`;
+  
+  $('#app').innerHTML = html;
+}
+
+async function createNewProfile() {
+  const nome = prompt('Nome do novo perfil:');
+  if (!nome) return;
+  const username = prompt('Nome de usuário (@):');
+  if (!username) return;
+
+  $('#app').innerHTML = `<div class="lo"><p>Criando perfil...</p></div>`;
+
+  const id = 'u' + Date.now();
+  const { data, error } = await sb.from('blooming_profiles').insert([{
+    id, account_id: S.accountId, nome, username, bio: 'Novo por aqui!', cor: '#E8336F', emo: '🌸'
+  }]).select().single();
+
+  if (error) { 
+    alert('Erro ao criar perfil: ' + error.message); 
+    renderProfilePicker();
+    return; 
+  }
+  
+  await loadProfiles();
+}
+
+async function selectProfile(id) {
+  S.me = S.profiles[id];
+  localStorage.setItem('blooming_me', id);
+  localStorage.setItem('blooming_account', S.accountId);
+  renderApp();
+}
+
+function logout() {
+  localStorage.removeItem('blooming_me');
+  localStorage.removeItem('blooming_account');
+  S.me = null; S.accountId = null;
+  renderLogin();
+}
+
+// --- APP PRINCIPAL ---
+async function renderApp() {
+  $('#app').innerHTML = `
+    <div class="sh">
+      <nav class="nv">
+        <h2 style="padding:10px;font-size:1.5rem">🌸 Blooming</h2>
+        <a href="#" onclick="renderFeed()">Início</a>
+        <a href="#" onclick="editProfile()">Editar Perfil</a>
+        <a href="#" onclick="logout()" style="margin-top:auto">Sair</a>
+      </nav>
+      <main id="main">
+        <div class="po"><p>Carregando feed...</p></div>
+      </main>
+    </div>`;
+  renderFeed();
+}
+
+async function renderFeed() {
+  const { data, error } = await sb.from('blooming_posts').select('*').order('created_at', { ascending: false });
+  let html = '';
+  
+  if (data && data.length) {
+    data.forEach(p => {
+      html += `<div class="po">
+        <div class="av">🌸</div>
+        <div style="flex:1">
+          <b>${p.user_id}</b> <span class="mut">agora</span>
+          <p style="margin:8px 0">${p.text}</p>
+        </div>
+      </div>`;
+    });
+  } else {
+    html = `<div class="po"><p class="mut">Nenhuma publicação ainda.</p></div>`;
+  }
+  
+  $('#main').innerHTML = html;
+}
+
+// --- EDITAR PERFIL ---
+function editProfile() {
+  const p = S.me;
+  $('#md').showModal();
+  $('#md').innerHTML = `
+    <h2>Editar Perfil</h2>
+    <label>Nome</label><input class="fi" id="editName" value="${p.nome}">
+    <label>Bio</label><textarea class="fi" id="editBio" rows="3">${p.bio}</textarea>
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <button class="b g" onclick="$('#md').close()">Cancelar</button>
+      <button class="b" onclick="saveProfile()">Salvar</button>
+    </div>
+  `;
+}
+
+async function saveProfile() {
+  const nome = $('#editName').value;
+  const bio = $('#editBio').value;
+  
+  $('#md').innerHTML = '<p>Salvando...</p>';
+  
+  const { error } = await sb.from('blooming_profiles').update({ nome, bio }).eq('id', S.me.id);
+  
+  if (error) {
+    alert('Erro ao salvar: ' + error.message);
+    return;
+  }
+  
+  S.me.nome = nome;
+  S.me.bio = bio;
+  $('#md').close();
+  alert('Perfil salvo!');
+}
+
+// --- INICIALIZAÇÃO ---
+function init() {
+  const savedProfile = localStorage.getItem('blooming_me');
+  const savedAccount = localStorage.getItem('blooming_account');
+  
+  if (savedProfile && savedAccount) {
+    S.accountId = savedAccount;
+    sb.from('blooming_profiles').select('*').eq('id', savedProfile).single().then(({ data }) => {
+      if (data) {
+        S.me = data;
+        renderApp();
+      } else {
+        renderLogin();
+      }
+    });
+  } else {
+    renderLogin();
+  }
+}
+
+window.doLogin = doLogin;
+window.doSignup = doSignup;
+window.createNewProfile = createNewProfile;
+window.selectProfile = selectProfile;
+window.logout = logout;
+window.editProfile = editProfile;
+window.saveProfile = saveProfile;
+window.renderFeed = renderFeed;
+
+init();
+</script>
+</body>
+</html>
