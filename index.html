@@ -1,45 +1,150 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#000">
 <title>Blooming</title>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#F6F3FB;--card:#fff;--ink:#1B1526;--mut:#6B6280;--line:#E4DEF0;--acc:#E8336F;--on:#fff;box-sizing:border-box}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Figtree,system-ui,sans-serif}h1,h2,h3{font-family:'Bricolage Grotesque',Figtree,sans-serif}.mut{color:var(--mut)}button,input,textarea{font:inherit}.b{border:0;border-radius:999px;background:var(--acc);color:var(--on);font-weight:700;padding:10px 20px;cursor:pointer}.b.g{background:transparent;color:var(--ink);border:1.5px solid var(--line)}.fi{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card);margin:4px 0 12px}.av{border-radius:50%;display:grid;place-items:center;overflow:hidden;background:var(--acc);color:#fff;flex:none}.sh{display:grid;grid-template-columns:260px minmax(0,600px);justify-content:center;min-height:100vh}.nv{position:sticky;top:0;height:100vh;padding:20px 16px;display:flex;flex-direction:column;gap:8px;border-right:1px solid var(--line)}.nv a,.nv button.l{display:flex;gap:14px;align-items:center;padding:12px 16px;border-radius:999px;background:none;border:0;cursor:pointer;text-align:left;color:inherit;text-decoration:none}.nv a:hover,.nv button.l:hover{background:var(--card)}main{border-right:1px solid var(--line);min-height:100vh;padding-bottom:60px}.tp{position:sticky;top:0;z-index:3;background:var(--bg);border-bottom:1px solid var(--line);padding:16px 20px;font-weight:800}.cp,.po{display:flex;gap:14px;padding:16px 20px;border-bottom:1px solid var(--line)}.cp textarea{width:100%;border:0;background:none;resize:none;font-size:1.1rem;outline:0;min-height:50px}.po .bd{min-width:0;flex:1}.tx{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0}.ac{display:flex;gap:20px;margin-top:12px;color:var(--mut)}.ac button{background:none;border:0;cursor:pointer;color:inherit}.lo{max-width:420px;margin:auto;padding:60px 20px;text-align:center}.profile-grid{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;margin:32px 0}.profile-card{text-align:center;cursor:pointer}.check-open{position:fixed;right:18px;bottom:18px;z-index:9999;border:0;border-radius:999px;background:var(--acc);color:#fff;padding:12px 18px;font-weight:800;box-shadow:0 8px 24px #0003;cursor:pointer}.check-modal{position:fixed;inset:0;background:#0008;z-index:10000;display:none;align-items:center;justify-content:center;padding:18px}.check-modal.open{display:flex}.check-box{width:min(760px,96vw);max-height:90vh;overflow:auto;background:var(--card);color:var(--ink);border-radius:24px;padding:24px;box-shadow:0 20px 60px #0006}.check-head{display:flex;justify-content:space-between;gap:15px;align-items:center}.check-close{border:0;background:none;font-size:28px;cursor:pointer}.check-progress{height:10px;background:var(--line);border-radius:99px;overflow:hidden}.check-progress i{display:block;height:100%;width:0;background:var(--acc);transition:.2s}.check-actions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.check-cat{border:1px solid var(--line);border-radius:16px;padding:12px;margin:10px 0}.check-cat h3{margin:0 0 8px}.check-item{display:flex;align-items:flex-start;gap:10px;padding:7px 2px;cursor:pointer}.check-item input{width:18px;height:18px;accent-color:var(--acc);margin-top:3px}.check-item.done span{text-decoration:line-through;opacity:.55}@media(max-width:700px){.sh{display:block}.nv{position:fixed;bottom:0;width:100%;height:auto;flex-direction:row;justify-content:space-around;border:0;border-top:1px solid var(--line);z-index:10;background:var(--card);padding:8px}.nv span{display:none}.nv a,.nv button.l{padding:12px}.check-open{bottom:72px;right:12px}main{border:0}}
+:root{--bg:#000;--card:#111;--card2:#181818;--line:#292929;--text:#f5f5f5;--muted:#999;--accent:#d38cff}
+.light{--bg:#f7f4fa;--card:#fff;--card2:#eeeaf1;--line:#ddd6e4;--text:#19151d;--muted:#6d6673}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px system-ui,sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer}
+.primary{background:var(--accent);border:0;border-radius:999px;padding:11px 18px;font-weight:800;color:#160d1b}.secondary{background:transparent;border:1px solid var(--line);color:var(--text);border-radius:999px;padding:10px 15px}
+.auth{min-height:100vh;display:grid;place-items:center;padding:20px}.box{width:min(440px,100%);text-align:center}.logo{font-size:42px;font-weight:900}.field{text-align:left;margin:10px 0}.field input,.field textarea,.field select,.search input{width:100%;padding:12px;background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:12px}.actions{display:grid;gap:9px;margin-top:15px}
+.layout{max-width:1250px;margin:auto;min-height:100vh;display:grid;grid-template-columns:245px minmax(0,650px) 300px}.sidebar{border-right:1px solid var(--line);padding:18px 12px;position:sticky;top:0;height:100vh}.brand{font-size:25px;font-weight:900;padding:10px 12px 20px}.nav{width:100%;display:flex;gap:12px;padding:12px;border:0;background:transparent;color:var(--text);border-radius:12px;text-align:left}.nav:hover{background:var(--card2)}.main{border-right:1px solid var(--line)}.top{position:sticky;top:0;z-index:5;padding:15px 18px;background:var(--bg);border-bottom:1px solid var(--line);font-weight:800}.post,.composer{display:flex;gap:12px;padding:16px;border-bottom:1px solid var(--line)}.grow{flex:1}.avatar{width:44px;height:44px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:var(--accent);color:#160d1b;flex:none;font-weight:900}.avatar img{width:100%;height:100%;object-fit:cover}.composer textarea{width:100%;min-height:70px;background:transparent;border:0;color:var(--text);resize:none;outline:0}.posttext{white-space:pre-wrap;overflow-wrap:anywhere;margin:7px 0}.muted{color:var(--muted)}.actions{display:flex;gap:6px;margin-top:8px}.actions button{background:transparent;border:0;color:var(--muted);padding:7px}.right{padding:18px}.side{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:12px}.profile-grid{display:flex;gap:25px;flex-wrap:wrap;justify-content:center;margin:30px}.profile-card{border:0;background:transparent;color:var(--text);text-align:center}.cover{height:200px;background:var(--card2);background-size:cover;background-position:center}.profile-info{padding:0 18px 18px;border-bottom:1px solid var(--line)}.modal{display:none;position:fixed;inset:0;background:#000b;z-index:100;align-items:center;justify-content:center;padding:15px}.modal.open{display:flex}.modalbox{width:min(700px,100%);max-height:90vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px}.modalhead{display:flex;justify-content:space-between}.icon{background:transparent;border:0;color:var(--text);font-size:26px}.checkbtn{position:fixed;right:15px;bottom:15px;z-index:90;background:var(--accent);border:0;border-radius:999px;padding:11px 15px;font-weight:900}.checkmodal{display:none;position:fixed;inset:0;background:#000b;z-index:200;align-items:center;justify-content:center;padding:15px}.checkmodal.open{display:flex}.checkbox{width:min(800px,100%);max-height:90vh;overflow:auto;background:var(--card);border-radius:20px;padding:20px}.cat{border:1px solid var(--line);border-radius:14px;padding:12px;margin:9px 0}.item{display:flex;gap:8px;padding:5px}.progress{height:8px;background:var(--line);border-radius:99px;overflow:hidden}.progress i{display:block;height:100%;background:var(--accent);width:0}.mobile{display:none}
+@media(max-width:950px){.layout{grid-template-columns:72px minmax(0,650px)}.sidebar span,.brand span,.right{display:none}.brand{text-align:center}.nav{justify-content:center}}
+@media(max-width:700px){.layout{display:block}.sidebar{display:none}.main{border:0}.mobile{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);z-index:50;justify-content:space-around;padding:7px}.mobile button{background:transparent;border:0;color:var(--text);font-size:20px}.checkbtn{bottom:65px}}
 </style>
 </head>
 <body>
-<div id="app"></div>
-<dialog id="md"></dialog>
-<button class="check-open" onclick="BloomingChecklist.open()">✓ Checklist Blooming</button>
-<div id="checkModal" class="check-modal" onclick="if(event.target===this)BloomingChecklist.close()"><section class="check-box"><div class="check-head"><div><h2>🌸 Checklist Blooming</h2><p id="checkCount" class="mut">0 de 18 concluídos</p></div><button class="check-close" onclick="BloomingChecklist.close()">×</button></div><div class="check-progress"><i id="checkBar"></i></div><div class="check-actions"><button class="b" onclick="BloomingChecklist.all()">Marcar tudo</button><button class="b g" onclick="BloomingChecklist.clear()">Limpar</button></div><div id="checkList"></div></section></div>
+<div id="app"></div><div id="modal" class="modal"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL='https://eulxkpxjwhwknegvhjsv.supabase.co';
-const SUPABASE_KEY=localStorage.getItem('blooming:v08:supabase_key')||localStorage.getItem('blooming_supabase_key')||'';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let S={me:null,accountId:null,profiles:{},posts:[]};const $=s=>document.querySelector(s);
-const checklist=[['Conta e acesso',['Login','Criar conta','Esqueci meu código','Alterar código','Recuperação','Manter conectado','Encerrar sessões','Excluir acesso']],['Perfis',['Criar perfil','Excluir perfil','Trocar perfil','Perfil estilo Netflix','Foto e capa','Editar perfil','Usuário único','Perfis Oficiais 1/2']],['Persistência Supabase',['Contas','Perfis','Publicações','Curtidas','Comentários','Seguidores','Mensagens','Exclusões permanentes','Sincronização celular/computador']],['Feed',['Publicar','Fotos','Vídeos','Links','Curtir','Comentar','Fixar publicação','Excluir/editar publicação','Menu de ações']],['Seguindo / Para você',['Abas','Feed personalizado','Ordem das publicações','Contagem de seguidores']],['Busca e descoberta',['Buscar perfis','Buscar hashtags','Tendências orgânicas','Perfis verificados','Perfis privados']],['Seguir',['Seguir','Deixar de seguir','Solicitação privada','Aceitar/recusar','Ano da solicitação']],['Notificações',['Novos seguidores','Solicitações','Curtidas','Comentários']],['Mensagens',['Conversas','Excluir mensagem','Limpar conversa','Excluir conversa','Sincronização']],['Mídia no chat',['Fotos','Vídeos','Áudios','Stickers','GIFs','Crop','Duração de vídeo','Salvar stickers']],['Comunidades',['Criar comunidade','Entrar','Convites','Membros','Publicações']],['Importação do X',['Posts','Fotos','Vídeos','Links','Data original','Deduplicação','Seguidores','Vídeos /video/1','Overlay estilo X']],['Links inteligentes',['Spotify','Wattpad','Livros','Filmes','Letterboxd','Tipo de conteúdo','Artista/autor/ano']],['Configurações',['Tema','Preto verdadeiro / Mudo Escuro','Cor personalizada','Gerenciar perfis','Segurança','Backup','Dispositivos']],['Mobile / desktop',['Layout responsivo','Barra inferior no celular','Navegação desktop','Rolagem da página inteira','Upload de mídia']],['Segurança',['Sessões','Código de acesso','Privacidade','Contas privadas','Exclusão definitiva']],['Backup',['Backup automático','Recuperação','Preservar alterações','Evitar perda de dados']],['Limpeza',['Remover contas de teste','Remover posts de teste','Remover chats duplicados','Não recriar dados excluídos']]];
-const CK='blooming:v08:checklist';let checked=JSON.parse(localStorage.getItem(CK)||'{}');
-function renderChecklist(){let n=0,total=0,h='';checklist.forEach((c,ci)=>{h+=`<div class="check-cat"><h3>${ci+1}. ${c[0]}</h3>`;c[1].forEach((x,ii)=>{let k=ci+'-'+ii,v=!!checked[k];if(v)n++;total++;h+=`<label class="check-item ${v?'done':''}"><input type="checkbox" ${v?'checked':''} onchange="BloomingChecklist.toggle('${k}',this.checked)"><span>${x}</span></label>`});h+='</div>'});$('#checkList').innerHTML=h;$('#checkCount').textContent=`${n} de ${total} concluídos`;$('#checkBar').style.width=(n/total*100)+'%'}
-window.BloomingChecklist={open(){renderChecklist();$('#checkModal').classList.add('open')},close(){$('#checkModal').classList.remove('open')},toggle(k,v){checked[k]=v;localStorage.setItem(CK,JSON.stringify(checked));renderChecklist()},all(){checklist.forEach((c,ci)=>c[1].forEach((_,ii)=>checked[ci+'-'+ii]=true));localStorage.setItem(CK,JSON.stringify(checked));renderChecklist()},clear(){checked={};localStorage.setItem(CK,'{}');renderChecklist()}};
-const IC={home:'⌂',user:'♙',logout:'↪'};
-function renderLogin(){$('#app').innerHTML=`<div class="lo"><h1>🌸 Blooming</h1><p class="mut">Entre na sua conta ou crie uma nova.</p><div style="text-align:left"><label>Nome da conta</label><input class="fi" id="loginName" placeholder="Nome da conta"><label>Código de acesso</label><input class="fi" id="loginPass" type="password" placeholder="Código"></div><button class="b" style="width:100%" onclick="doLogin()">Entrar</button><button class="b g" style="width:100%;margin-top:10px" onclick="doSignup()">Criar nova conta</button><p id="loginError" style="color:var(--acc)"></p></div>`}
-async function doLogin(){const name=$('#loginName').value.trim(),pass=$('#loginPass').value.trim();if(!name||!pass)return $('#loginError').textContent='Preencha nome e código.';$('#loginError').textContent='Entrando...';const {data,error}=await sb.from('blooming_accounts').select('*').ilike('nome',name).eq('pw_hash',pass).single();if(error||!data)return $('#loginError').textContent='Nome ou código incorretos.';S.accountId=data.id;localStorage.setItem('blooming_account',data.id);localStorage.removeItem('blooming_me');await loadProfiles()}
-async function doSignup(){const name=$('#loginName').value.trim(),pass=$('#loginPass').value.trim();if(!name||!pass)return $('#loginError').textContent='Preencha nome e código.';const id='a'+Date.now();const {data,error}=await sb.from('blooming_accounts').insert([{id,nome:name,pw_hash:pass}]).select().single();if(error)return $('#loginError').textContent='Erro: '+error.message;S.accountId=data.id;localStorage.setItem('blooming_account',data.id);await loadProfiles()}
-async function loadProfiles(){$('#app').innerHTML='<div class="lo"><p>Carregando perfis...</p></div>';const {data,error}=await sb.from('blooming_profiles').select('*').eq('account_id',S.accountId);if(error)return alert('Erro: '+error.message);S.profiles={};(data||[]).forEach(p=>S.profiles[p.id]=p);renderProfilePicker()}
-function renderProfilePicker(){let h='<div class="lo"><h1>Quem está usando?</h1><div class="profile-grid">';Object.values(S.profiles).forEach(p=>h+=`<div class="profile-card" onclick="selectProfile('${p.id}')"><div class="av" style="width:96px;height:96px;font-size:2rem;margin:auto">${p.emo||'🌸'}</div><b>${p.nome}</b><div class="mut">@${p.username||''}</div></div>`);h+=`<div class="profile-card" onclick="createNewProfile()"><div class="av" style="width:96px;height:96px;font-size:2rem;margin:auto;background:transparent;color:var(--mut);border:2px dashed var(--line)">+</div><b>Criar perfil</b></div></div><button class="b g" onclick="logout()">Sair da conta</button></div>`;$('#app').innerHTML=h}
-async function createNewProfile(){const nome=prompt('Nome do novo perfil:');if(!nome)return;const username=prompt('Nome de usuário (sem @):');if(!username)return;const id='u'+Date.now();const {error}=await sb.from('blooming_profiles').insert([{id,account_id:S.accountId,nome,username,bio:'Novo por aqui!',cor:'#E8336F',emo:'🌸'}]);if(error)return alert('Erro: '+error.message);loadProfiles()}
-async function selectProfile(id){S.me=S.profiles[id];localStorage.setItem('blooming_me',id);localStorage.setItem('blooming_account',S.accountId);renderApp()}
-function logout(){localStorage.removeItem('blooming_me');localStorage.removeItem('blooming_account');S={me:null,accountId:null,profiles:{},posts:[]};renderLogin()}
-async function renderApp(){$('#app').innerHTML=`<div class="sh"><nav class="nv"><h2>🌸 Blooming</h2><a href="#" onclick="renderFeed();return false">${IC.home}<span>Início</span></a><a href="#" onclick="editProfile();return false">${IC.user}<span>Perfil</span></a><button class="l" onclick="logout()">${IC.logout}<span>Sair</span></button></nav><main><div class="tp">Início</div><div class="cp"><div class="av" style="width:42px;height:42px">${S.me.emo||'🌸'}</div><div style="flex:1"><textarea id="postText" placeholder="O que está florescendo?"></textarea><button class="b" onclick="createPost()">Publicar</button></div></div><div id="feed"></div></main></div>`;renderFeed()}
-async function renderFeed(){const {data}=await sb.from('blooming_posts').select('*').order('created_at',{ascending:false});$('#feed').innerHTML=(data||[]).map(p=>`<div class="po"><div class="av" style="width:42px;height:42px">🌸</div><div class="bd"><b>${p.user_id||''}</b><div class="tx">${p.text||''}</div><div class="ac">♡ ${p.likes_count||0}　💬</div></div></div>`).join('')||'<div class="po"><span class="mut">Nenhuma publicação ainda.</span></div>'}
-async function createPost(){const text=$('#postText').value.trim();if(!text)return;const {error}=await sb.from('blooming_posts').insert([{id:'p'+Date.now(),user_id:S.me.username,text}]);if(error)return alert('Erro: '+error.message);$('#postText').value='';renderFeed()}
-function editProfile(){const p=S.me;$('#md').showModal();$('#md').innerHTML=`<h2>Editar Perfil</h2><input class="fi" id="editName" value="${p.nome||''}"><textarea class="fi" id="editBio" rows="3">${p.bio||''}</textarea><button class="b g" onclick="$('#md').close()">Cancelar</button> <button class="b" onclick="saveProfile()">Salvar</button>`}
-async function saveProfile(){const nome=$('#editName').value,bio=$('#editBio').value;const {error}=await sb.from('blooming_profiles').update({nome,bio,updated_at:new Date().toISOString()}).eq('id',S.me.id);if(error)return alert('Erro: '+error.message);S.me.nome=nome;S.me.bio=bio;$('#md').close();renderApp()}
-function init(){const p=localStorage.getItem('blooming_me'),a=localStorage.getItem('blooming_account');if(p&&a){S.accountId=a;sb.from('blooming_profiles').select('*').eq('id',p).single().then(({data})=>data?(S.me=data,renderApp()):renderLogin())}else renderLogin()}
-Object.assign(window,{doLogin,doSignup,createNewProfile,selectProfile,logout,editProfile,saveProfile,renderFeed,createPost});init();
+// CONFIGURAÇÃO DO SEU NOVO SUPABASE
+const URL_SUPABASE="https://jzetzelxstyfzrjfnill.supabase.co";
+const KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6ZXR6ZWx4c3R5ZnpyamZuaWxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4ODQ3NjUsImV4cCI6MjEwODQ2MDc2NX0.x3ZmG-S1hluuLCqJHWHMo6oL8Iyjk2P_CQIsNFnggcA";
+
+const db=supabase.createClient(URL_SUPABASE,KEY);
+
+const S={account:null,profile:null,profiles:[],page:"home",theme:localStorage.getItem("blooming:theme")||"dark",accent:localStorage.getItem("blooming:accent")||"#d38cff"};
+const $=x=>document.querySelector(x), esc=x=>String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+document.documentElement.className=S.theme==="light"?"light":"";
+document.documentElement.style.setProperty("--accent",S.accent);
+
+function openModal(title,body){$("#modal").innerHTML=`<div class="modalbox"><div class="modalhead"><h2>${esc(title)}</h2><button class="icon" onclick="closeModal()">×</button></div>${body}</div>`;$("#modal").classList.add("open")}
+function closeModal(){$("#modal").classList.remove("open");$("#modal").innerHTML=""}
+function toast(msg){const t=document.createElement("div");t.textContent=msg;t.style.cssText="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;padding:10px 20px;border-radius:20px;font-weight:bold;z-index:999";document.body.appendChild(t);setTimeout(()=>t.remove(),3000)}
+
+async function boot(){
+ const aid=localStorage.getItem("blooming:account"),pid=localStorage.getItem("blooming:profile");
+ if(!aid){login();return}
+ S.account={id:aid};await loadProfiles();
+ if(pid)S.profile=S.profiles.find(p=>String(p.id)===String(pid));
+ S.profile?app():profiles()
+}
+
+function login(msg=""){$("#app").innerHTML=`<div class="auth"><div class="box"><div class="logo">🌸 Blooming</div><p class="muted">Seu espaço social.</p><div class="field"><label>Nome da conta</label><input id="name"></div><div class="field"><label>Código</label><input id="code" type="password"></div><p id="msg" class="danger">${esc(msg)}</p><div class="actions"><button class="primary" onclick="doLogin()">Entrar</button><button class="secondary" onclick="doSignup()">Criar acesso</button><button class="secondary" onclick="forgot()">Esqueci meu código</button></div></div></div>`}
+
+async function doLogin(){
+ let name=$("#name").value.trim(),code=$("#code").value.trim();
+ if(!name||!code)return $("#msg").textContent="Preencha nome e código.";
+ $("#msg").textContent="Entrando…";
+ 
+ // Tenta buscar na tabela blooming_accounts
+ let r=await db.from("blooming_accounts").select("*").ilike("nome",name).maybeSingle();
+ 
+ if(!r.data) return $("#msg").textContent="Conta não encontrada.";
+ if(r.data.pw_hash !== code) return $("#msg").textContent="Código incorreto.";
+ 
+ S.account=r.data;
+ localStorage.setItem("blooming:account",r.data.id);
+ localStorage.removeItem("blooming:profile");
+ 
+ await loadProfiles();
+ profiles();
+}
+
+async function doSignup(){
+ let name=$("#name").value.trim(),code=$("#code").value.trim();
+ if(!name||!code)return $("#msg").textContent="Preencha nome e código.";
+ let id=crypto.randomUUID();
+ let r=await db.from("blooming_accounts").insert([{id,nome:name,pw_hash:code}]).select().single();
+ if(r.error)return $("#msg").textContent=r.error.message;
+ S.account=r.data;
+ localStorage.setItem("blooming:account",id);
+ localStorage.removeItem("blooming:profile");
+ S.profiles=[];
+ profiles();
+}
+
+function forgot(){openModal("Recuperação",`<p class="muted">A interface está pronta para e-mail, SMS e WhatsApp. O envio real depende do provedor de recuperação configurado no Supabase.</p><input placeholder="E-mail ou telefone"><button class="primary" style="margin-top:10px" onclick="alert('Configure o provedor de recuperação no Supabase para efetivar o envio.')">Solicitar</button>`)}
+
+async function loadProfiles(){
+ let r=await db.from("blooming_profiles").select("*").eq("account_id",S.account.id).order("created_at",{ascending:true});
+ S.profiles=r.data||[];
+}
+
+function profiles(){
+ let h=S.profiles.map(p=>`<button class="profile-card" onclick="choose('${esc(p.id)}')"><div class="avatar" style="width:105px;height:105px;margin:auto">${p.avatar_url?`<img src="${esc(p.avatar_url)}">`:esc(p.emoji||p.emo||"🌸")}</div><b>${esc(p.nome)}</b><div class="muted">@${esc(p.username||"")}</div></button>`).join("");
+ $("#app").innerHTML=`<div class="auth"><div class="box" style="max-width:760px"><div class="logo">🌸</div><h2>Quem está usando?</h2><div class="profile-grid">${h}<button class="profile-card" onclick="newProfile()"><div class="avatar" style="width:105px;height:105px;margin:auto;background:transparent;border:2px dashed var(--line);font-size:35px">+</div><b>Criar perfil</b></button></div><button class="secondary" onclick="logout()">Sair</button></div></div>`;
+}
+
+async function newProfile(){
+ let n=prompt("Nome do perfil");if(!n)return;
+ let base=n.toLowerCase().replace(/[^a-z0-9]+/g,"")||"perfil",u=base,i=1;
+ while(S.profiles.some(p=>(p.username||"").toLowerCase()===u))u=base+(++i);
+ let r=await db.from("blooming_profiles").insert([{id:crypto.randomUUID(),account_id:S.account.id,nome:n,username:u,bio:"",cor:S.accent,emoji:"🌸",privada:false,verificado:false}]);
+ if(r.error)return alert(r.error.message);
+ await loadProfiles();profiles();
+}
+
+function choose(id){S.profile=S.profiles.find(p=>String(p.id)===String(id));localStorage.setItem("blooming:profile",id);app()}
+function logout(){localStorage.removeItem("blooming:account");localStorage.removeItem("blooming:profile");S.account=null;S.profile=null;login()}
+
+function nav(){return [["home","⌂","Início"],["explore","⌕","Explorar"],["notifications","♡","Notificações"],["messages","✉","Mensagens"],["communities","♧","Comunidades"],["profile","●","Perfil"],["settings","⚙","Configurações"]].map(x=>`<button class="nav" onclick="go('${x[0]}')"><b>${x[1]}</b><span>${x[2]}</span></button>`).join("")}
+
+function app(){$("#app").innerHTML=`<div class="layout"><aside class="sidebar"><div class="brand">🌸 <span>Blooming</span></div>${nav()}<button class="nav" onclick="logout()">↪ <span>Sair</span></button></aside><main class="main"><div class="top" id="title">Início</div><div id="page"></div></main><aside class="right"><div class="side"><b>Em alta</b><p class="muted">Hashtags e posts populares aparecerão aqui.</p></div><div class="side"><b>@${esc(S.profile.username||"")}</b><p class="muted">${esc(S.profile.bio||"")}</p></div></aside></div><div class="mobile"><button onclick="go('home')">⌂</button><button onclick="go('explore')">⌕</button><button onclick="go('notifications')">♡</button><button onclick="go('messages')">✉</button><button onclick="go('profile')">●</button><button onclick="go('settings')">⚙</button></div>`;go(S.page)}
+
+async function go(p){S.page=p;$("#title").textContent={home:"Início",explore:"Explorar",notifications:"Notificações",messages:"Mensagens",communities:"Comunidades",profile:"Perfil",settings:"Configurações"}[p]||"Blooming";({home,explore,notifications,messages,communities,profilePage,settings}[p==="profile"?"profilePage":p])?.()}
+
+function composer(){return `<div class="composer"><div class="avatar">${esc(S.profile.emoji||S.profile.emo||"🌸")}</div><div class="grow"><textarea id="postText" placeholder="O que está florescendo?"></textarea><button class="primary" onclick="publish()">Publicar</button></div></div>`}
+
+async function home(){$("#page").innerHTML=`<div style="padding:10px 16px;border-bottom:1px solid var(--line)"><button class="primary">Para você</button> <button class="secondary" onclick="toast('Feed Seguindo')">Seguindo</button></div>${composer()}<div id="feed"></div>`;let r=await db.from("blooming_posts").select("*").order("created_at",{ascending:false});$("#feed").innerHTML=r.error?`<div class="post">${esc(r.error.message)}</div>`:(r.data||[]).map(post).join("")||`<div class="post"><span class="muted">Nenhuma publicação ainda.</span></div>`}
+
+function post(p){return `<article class="post"><div class="avatar">🌸</div><div class="grow"><b>${esc(p.user_id||"Blooming")}</b><div class="posttext">${esc(p.text||p.caption||"")}</div>${p.media_url?`<img style="width:100%;max-height:620px;object-fit:contain;border-radius:14px" src="${esc(p.media_url)}">`:""}<div class="actions"><button>♡ ${p.likes_count||0}</button><button onclick="comment('${esc(p.id)}')">💬 ${p.comments_count||0}</button><button>🔖</button><button onclick="menu('${esc(p.id)}')">⋯</button></div></div></article>`}
+
+async function publish(){let text=$("#postText").value.trim();if(!text)return;let r=await db.from("blooming_posts").insert([{id:crypto.randomUUID(),user_id:S.profile.id,text,created_at:new Date().toISOString()}]);if(r.error)return alert(r.error.message);home()}
+
+function comment(id){openModal("Comentários",`<input id="comment" placeholder="Escreva um comentário"><button class="primary" onclick="sendComment('${esc(id)}')">Enviar</button>`)}
+async function sendComment(id){let text=$("#comment").value.trim();if(!text)return;let r=await db.from("blooming_comments").insert([{id:crypto.randomUUID(),post_id:id,user_id:S.profile.id,text}]);if(r.error)return alert(r.error.message);closeModal();toast("Comentário enviado")}
+
+function menu(id){openModal("Publicação",`<button class="secondary" onclick="editPost('${esc(id)}')">✎ Editar</button> <button class="secondary" onclick="deletePost('${esc(id)}')">⌫ Excluir</button> <button class="secondary" onclick="pin('${esc(id)}')">♧ Fixar</button>`)}
+async function editPost(id){let t=prompt("Novo texto");if(t===null)return;let r=await db.from("blooming_posts").update({text:t}).eq("id",id);if(r.error)return alert(r.error.message);closeModal();home()}
+async function deletePost(id){if(!confirm("Excluir definitivamente?"))return;let r=await db.from("blooming_posts").delete().eq("id",id);if(r.error)return alert(r.error.message);closeModal();home()}
+function pin(id){localStorage.setItem("blooming:pinned:"+S.profile.id,id);closeModal();toast("Post fixado")}
+
+function explore(){$("#page").innerHTML=`<div class="search"><input placeholder="Buscar usuários, @username, hashtags ou posts" oninput="search(this.value)"></div><div id="results"></div>`}
+async function search(q){if(!q.trim())return $("#results").innerHTML="";let r=await db.from("blooming_profiles").select("*").or(`username.ilike.%${q}%,nome.ilike.%${q}%`).limit(20);$("#results").innerHTML=(r.data||[]).map(p=>`<div class="post"><div class="avatar">${esc(p.emoji||p.emo||"🌸")}</div><div class="grow"><b>${esc(p.nome)}</b><div class="muted">@${esc(p.username)}</div></div><button class="secondary" onclick="follow('${esc(p.id)}')">Seguir</button></div>`).join("")}
+async function follow(id){let r=await db.from("blooming_follows").insert([{id:crypto.randomUUID(),follower_id:S.profile.id,following_id:id,status:"accepted"}]);toast(r.error?"Não foi possível seguir: "+r.error.message:"Seguindo")}
+
+function notifications(){$("#page").innerHTML=`<div class="post"><div><h2>Notificações</h2><p class="muted">Curtidas, comentários, seguidores, solicitações e convites.</p></div></div>`}
+function messages(){$("#page").innerHTML=`<div class="post"><div><h2>Mensagens</h2><p class="muted">Conversas e mensagens do Supabase.</p><button class="primary" onclick="toast('Nova conversa')">Nova conversa</button></div></div>`}
+function communities(){$("#page").innerHTML=`<div class="post"><div><h2>Comunidades</h2><p class="muted">Comunidades públicas ou privadas.</p><button class="primary" onclick="createCommunity()">Criar comunidade</button></div></div>`}
+async function createCommunity(){let n=prompt("Nome");if(!n)return;let r=await db.from("blooming_communities").insert([{id:crypto.randomUUID(),name:n,owner_id:S.profile.id,private:false}]);toast(r.error?"Crie a tabela blooming_communities no Supabase: "+r.error.message:"Comunidade criada")}
+
+async function profilePage(){let p=S.profile;let r=await db.from("blooming_posts").select("*").eq("user_id",p.id).order("created_at",{ascending:false});$("#page").innerHTML=`<div class="cover" style="background-image:url('${esc(p.cover_url||p.capa||"")}')"></div><div class="profile-info"><div class="avatar" style="width:100px;height:100px;margin-top:-50px;border:4px solid var(--bg)">${p.avatar_url?`<img src="${esc(p.avatar_url)}">`:esc(p.emoji||p.emo||"🌸")}</div><h2>${esc(p.nome)} ${p.verificado?"✓":""}</h2><div class="muted">@${esc(p.username)}</div><p>${esc(p.bio||"")}</p><button class="secondary" onclick="editProfile()">Editar perfil</button></div>${(r.data||[]).map(post).join("")}`}
+
+function editProfile(){let p=S.profile;openModal("Editar perfil",`<div class="field"><label>Nome</label><input id="pn" value="${esc(p.nome||"")}"></div><div class="field"><label>Username</label><input id="pu" value="${esc(p.username||"")}"></div><div class="field"><label>Bio</label><textarea id="pb">${esc(p.bio||"")}</textarea></div><div class="field"><label>Localização</label><input id="pl" value="${esc(p.loc||"")}"></div><div class="field"><label>Cor</label><input id="pc" type="color" value="${esc(p.cor||S.accent)}"></div><button class="primary" onclick="saveProfile()">Salvar</button>`)}
+
+async function saveProfile(){let d={nome:$("#pn").value,username:$("#pu").value.replace(/^@/,""),bio:$("#pb").value,loc:$("#pl").value,cor:$("#pc").value,updated_at:new Date().toISOString()};let r=await db.from("blooming_profiles").update(d).eq("id",S.profile.id);if(r.error)return alert(r.error.message);Object.assign(S.profile,d);closeModal();profilePage()}
+
+function settings(){$("#page").innerHTML=`<div class="post"><div><h2>Aparência</h2><button class="secondary" onclick="theme('dark')">Mudo Escuro</button> <button class="secondary" onclick="theme('light')">Claro</button> <input type="color" style="width:50px" value="${esc(S.accent)}" onchange="accent(this.value)"></div></div><div class="post"><div><h2>Perfis</h2><button class="primary" onclick="profiles()">Gerenciar/trocar</button></div></div><div class="post"><div><h2>Supabase</h2><p class="muted">${esc(URL_SUPABASE)}</p><button class="secondary" onclick="test()">Testar conexão</button></div></div><div class="post"><div><h2>Sessão</h2><button class="secondary" onclick="logout()">Encerrar sessão</button></div></div>`}
+function theme(t){S.theme=t;localStorage.setItem("blooming:theme",t);document.documentElement.className=t==="light"?"light":""}
+function accent(c){S.accent=c;localStorage.setItem("blooming:accent",c);document.documentElement.style.setProperty("--accent",c)}
+async function test(){let r=await db.from("blooming_profiles").select("id").limit(1);alert(r.error?"Erro: "+r.error.message:"Supabase conectado")}
+
+boot();
 </script>
-<script src="blooming_checklist.js"></script>
-</body></html>
+</body>
+</html>
