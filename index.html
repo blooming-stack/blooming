@@ -1,283 +1,81 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Blooming</title>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#000;--card:#111;--card2:#181818;--line:#292929;--text:#f5f5f5;--muted:#999;--accent:#d38cff;--on:#160d1b}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font:15px/1.45 Figtree,system-ui,sans-serif}
-h1,h2,h3{font-family:'Bricolage Grotesque',sans-serif}
-button{cursor:pointer;border:0}
-.auth-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at 50% 0%, rgba(211,140,255,0.15) 0%, transparent 60%)}
-.auth-box{width:100%;max-width:420px;padding:36px;background:var(--card);border-radius:28px;border:1px solid var(--line)}
-.auth-title{text-align:center;font-size:2.4rem;font-weight:800;margin-bottom:32px}
-.field{text-align:left;margin-bottom:18px}
-.field label{display:block;font-size:0.85rem;font-weight:700;color:var(--muted);margin-bottom:8px}
-.field input,.field textarea{width:100%;padding:16px;background:var(--bg);border:1.5px solid var(--line);border-radius:14px;color:var(--text);font-size:1rem}
-.btn-primary{width:100%;padding:16px;border-radius:14px;background:var(--accent);color:var(--on);font-weight:800;font-size:1rem;margin-top:10px}
-.btn-secondary{width:100%;padding:16px;border-radius:14px;background:transparent;color:var(--text);font-weight:700;border:1.5px solid var(--line);margin-top:12px}
-.auth-switch{text-align:center;margin-top:24px;color:var(--muted)}
-.auth-switch a{color:var(--accent);font-weight:700;cursor:pointer}
-.layout{max-width:1200px;margin:0 auto;min-height:100vh;display:grid;grid-template-columns:260px minmax(0,650px) 320px}
-.sidebar{border-right:1px solid var(--line);padding:24px 16px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
-.brand{font-size:1.8rem;font-weight:900;padding:0 12px 24px}
-.nav{width:100%;display:flex;align-items:center;gap:16px;padding:14px 18px;border-radius:999px;background:transparent;color:var(--text);font-size:1.15rem;text-align:left;margin-bottom:4px}
-.nav:hover{background:var(--card)}
-.main{border-right:1px solid var(--line);min-height:100vh}
-.top{position:sticky;top:0;z-index:10;padding:16px 20px;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);font-weight:800;font-size:1.2rem}
-.post,.composer{display:flex;gap:16px;padding:16px 20px;border-bottom:1px solid var(--line)}
-.avatar{width:48px;height:48px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:var(--accent);color:var(--on);flex:none;font-weight:900}
-.composer textarea{width:100%;min-height:60px;background:transparent;border:0;color:var(--text);resize:none;outline:0;font-size:1.2rem}
-.posttext{white-space:pre-wrap;margin:6px 0;font-size:1.05rem}
-.muted{color:var(--muted);font-size:0.9rem}
-.actions{display:flex;gap:20px;margin-top:12px;color:var(--muted)}
-.actions button{background:none;color:inherit;font-size:0.9rem}
-.actions button:hover{color:var(--accent)}
-.right{padding:20px}
-.side{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:16px}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:100;align-items:center;justify-content:center;padding:15px}
-.modal.open{display:flex}
-.modalbox{width:100%;max-width:500px;background:var(--card);border-radius:24px;padding:24px;border:1px solid var(--line)}
-</style>
-</head>
-<body>
-<div id="app"></div>
-<div id="modal" class="modal"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-const URL_SUPABASE="https://jzetzelxstyfzrjfnill.supabase.co";
-const KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6ZXR6ZWx4c3R5ZnpyamZuaWxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4ODQ3NjUsImV4cCI6MjEwODQ2MDc2NX0.x3ZmG-S1hluuLCqJHWHMo6oL8Iyjk2P_CQIsNFnggcA";
-const db=supabase.createClient(URL_SUPABASE,KEY);
-
-let S={user:null,profile:null};
-const $=x=>document.querySelector(x);
-
-async function checkSession(){
-  const {data:{session}}=await db.auth.getSession();
-  if(session){
-    S.user=session.user;
-    await loadProfile();
-  } else {
-    renderLogin();
+:root {
+  --bg: #F6F3FB;
+  --card: #fff;
+  --ink: #1B1526;
+  --mut: #6B6280;
+  --line: #E4DEF0;
+  --acc: #E8336F; /* O rosa original */
+  --on: #fff;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000;
+    --card: #0b0b0b;
+    --ink: #F5F5F5;
+    --mut: #A7A7A7;
+    --line: #252525;
+    --acc: #FF5C8D;
+    --on: #16080d;
   }
 }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.45 system-ui, sans-serif; }
+h1, h2, h3 { font-family: 'Bricolage Grotesque', system-ui, sans-serif; line-height: 1.1; }
+button { cursor: pointer; font: inherit; border: 0; }
+input, textarea { font: inherit; }
+a { color: inherit; text-decoration: none; }
 
-function renderLogin(){
-  $("#app").innerHTML=`
-    <div class="auth-screen">
-      <div class="auth-box">
-        <div style="text-align:center;font-size:3rem;margin-bottom:12px">🌸</div>
-        <h1 class="auth-title">Blooming</h1>
-        <form onsubmit="doLogin(event)">
-          <div class="field"><label>E-mail</label><input id="email" type="email" required></div>
-          <div class="field"><label>Senha</label><input id="pass" type="password" required></div>
-          <button type="submit" class="btn-primary">Entrar</button>
-        </form>
-        <div class="auth-switch">Não tem conta? <a onclick="renderRegister()">Cadastre-se</a></div>
-      </div>
-    </div>`;
+/* Layout Principal (3 colunas como o X) */
+.sh { display: grid; grid-template-columns: 260px minmax(0, 600px) 330px; justify-content: center; min-height: 100vh; margin: 0 auto; max-width: 1200px; }
+.nv { position: sticky; top: 0; height: 100vh; padding: 20px 16px; display: flex; flex-direction: column; gap: 8px; border-right: 1px solid var(--line); }
+.lg { font-size: 1.8rem; font-weight: 800; display: flex; align-items: center; gap: 8px; padding: 6px 12px 20px; color: var(--acc); }
+.nv a, .nv button { display: flex; gap: 16px; align-items: center; padding: 12px 16px; border-radius: 999px; font-size: 1.15rem; font-weight: 600; background: none; color: var(--ink); transition: background 0.2s; text-align: left; }
+.nv a:hover, .nv button:hover { background: var(--card); }
+main { border-right: 1px solid var(--line); min-height: 100vh; padding-bottom: 80px; }
+.tp { position: sticky; top: 0; z-index: 10; background: rgba(0,0,0,0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); padding: 14px 16px; font-weight: 800; font-size: 1.25rem; }
+.rc { padding: 20px; }
+
+/* Botões */
+.b { border-radius: 999px; background: var(--acc); color: var(--on); font-weight: 700; padding: 10px 20px; transition: opacity 0.2s; }
+.b:hover { opacity: 0.9; }
+.b.g { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+
+/* Formulários e Inputs */
+.fi { width: 100%; border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--bg); margin: 4px 0 12px; color: var(--ink); }
+.fi:focus { outline: none; border-color: var(--acc); }
+
+/* Telas de Login/Cadastro */
+.lo { max-width: 420px; margin: 0 auto; padding: 80px 20px; text-align: center; }
+.lo h1 { font-size: 3rem; margin-bottom: 20px; color: var(--acc); }
+
+/* Posts e Feed */
+.cp { display: flex; gap: 12px; padding: 16px; border-bottom: 1px solid var(--line); }
+.cp textarea { width: 100%; border: 0; background: none; resize: none; font-size: 1.2rem; outline: 0; min-height: 60px; }
+.po { display: flex; gap: 12px; padding: 16px; border-bottom: 1px solid var(--line); transition: background 0.1s; }
+.po:hover { background: var(--card); }
+.bd { min-width: 0; flex: 1; }
+.tx { white-space: pre-wrap; overflow-wrap: anywhere; margin: 6px 0; font-size: 1.05rem; }
+.ac { display: flex; gap: 20px; margin-top: 12px; color: var(--mut); }
+.ac button { background: none; color: inherit; display: flex; align-items: center; gap: 6px; font-size: 0.9rem; }
+.ac button:hover { color: var(--acc); }
+
+/* Avatares */
+.av { width: 44px; height: 44px; border-radius: 50%; flex: none; display: grid; place-items: center; background: var(--line); color: var(--ink); font-weight: bold; overflow: hidden; font-size: 1.2rem; }
+.av img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Modais */
+dialog { border: 0; border-radius: 24px; padding: 24px; background: var(--card); color: var(--ink); width: min(500px, 90vw); box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+dialog::backdrop { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+
+/* Mobile */
+@media (max-width: 1000px) {
+  .sh { grid-template-columns: 80px minmax(0, 600px); }
+  .nv span, .rc { display: none; }
+  .nv a, .nv button { justify-content: center; padding: 16px; }
 }
-
-function renderRegister(){
-  $("#app").innerHTML=`
-    <div class="auth-screen">
-      <div class="auth-box">
-        <div style="text-align:center;font-size:3rem;margin-bottom:12px">🌸</div>
-        <h1 class="auth-title">Criar Conta</h1>
-        <form onsubmit="doRegister(event)">
-          <div class="field"><label>Nome</label><input id="name" required></div>
-          <div class="field"><label>@ Usuário</label><input id="user" required></div>
-          <div class="field"><label>E-mail</label><input id="email" type="email" required></div>
-          <div class="field"><label>Senha</label><input id="pass" type="password" required></div>
-          <button type="submit" class="btn-primary">Criar Conta</button>
-        </form>
-        <div class="auth-switch">Já tem conta? <a onclick="renderLogin()">Entrar</a></div>
-      </div>
-    </div>`;
+@media (max-width: 700px) {
+  .sh { display: block; }
+  .nv { position: fixed; bottom: 0; left: 0; right: 0; width: 100%; height: auto; flex-direction: row; justify-content: space-around; border-right: 0; border-top: 1px solid var(--line); z-index: 50; background: var(--bg); }
+  .nv .lg, .nv span { display: none; }
+  main { border: 0; padding-bottom: 80px; }
 }
-
-async function doLogin(e){
-  e.preventDefault();
-  const {data, error}=await db.auth.signInWithPassword({email:$("#email").value, password:$("#pass").value});
-  if(error) return alert(error.message);
-  S.user=data.user;
-  await loadProfile();
-}
-
-async function doRegister(e){
-  e.preventDefault();
-  const {data, error}=await db.auth.signUp({email:$("#email").value, password:$("#pass").value});
-  if(error) return alert(error.message);
-  
-  const {error:profileError}=await db.from("blooming_profiles").insert([{
-    id: data.user.id, nome: $("#name").value, username: $("#user").value.replace(/^@/,"")
-  }]);
-  
-  if(profileError) return alert(profileError.message);
-  S.user=data.user;
-  await loadProfile();
-}
-
-async function loadProfile(){
-  const {data, error}=await db.from("blooming_profiles").select("*").eq("id",S.user.id).single();
-  if(error || !data) return alert("Perfil não encontrado.");
-  S.profile=data;
-  renderApp();
-}
-
-function renderApp(){
-  $("#app").innerHTML=`
-    <div class="layout">
-      <aside class="sidebar">
-        <div class="brand">🌸 Blooming</div>
-        <button class="nav" onclick="loadFeed()"><b>⌂</b> Início</button>
-        <button class="nav" onclick="openEditProfile()"><b>👤</b> Perfil</button>
-        <button class="nav" onclick="logout()" style="margin-top:auto"><b>↪</b> Sair</button>
-      </aside>
-      
-      <main class="main">
-        <div class="top">Início</div>
-        <div class="composer">
-          <div class="avatar">${S.profile.emoji}</div>
-          <div style="flex:1">
-            <textarea id="postText" placeholder="O que está florescendo?"></textarea>
-            <div style="display:flex;justify-content:flex-end;margin-top:8px">
-              <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="publish()">Publicar</button>
-            </div>
-          </div>
-        </div>
-        <div id="feed"></div>
-      </main>
-      
-      <aside class="right">
-        <div class="side">
-          <h3>Perfil Atual</h3>
-          <p><b>${S.profile.nome}</b></p>
-          <p class="muted">@${S.profile.username}</p>
-          <p style="margin-top:10px">${S.profile.bio || 'Sem bio.'}</p>
-        </div>
-      </aside>
-    </div>`;
-  loadFeed();
-}
-
-async function loadFeed(){
-  const {data, error}=await db.from("blooming_posts")
-    .select("*, blooming_profiles(username, nome, emoji), blooming_likes(user_id), blooming_comments(id)")
-    .order("created_at",{ascending:false});
-  
-  if(error) return $("#feed").innerHTML=`<p>${error.message}</p>`;
-  
-  $("#feed").innerHTML=data.map(p=>{
-    const likesCount = p.blooming_likes.length;
-    const iLiked = p.blooming_likes.some(l => l.user_id === S.user.id);
-    const commentsCount = p.blooming_comments.length;
-
-    return `
-    <div class="post">
-      <div class="avatar">${p.blooming_profiles?.emoji || '🌸'}</div>
-      <div style="flex:1">
-        <b>${p.blooming_profiles?.nome}</b> <span class="muted">@${p.blooming_profiles?.username}</span>
-        <div class="posttext">${p.text}</div>
-        <div class="actions">
-          <button onclick="toggleLike('${p.id}', ${iLiked})" style="${iLiked ? 'color:var(--accent)' : ''}">♡ ${likesCount}</button>
-          <button onclick="openComment('${p.id}')">💬 ${commentsCount}</button>
-          <button onclick="deletePost('${p.id}')" style="margin-left:auto">🗑️</button>
-        </div>
-      </div>
-    </div>
-  `}).join("") || `<p style="padding:20px;text-align:center" class="muted">Nenhum post ainda.</p>`;
-}
-
-async function publish(){
-  const text=$("#postText").value;
-  if(!text.trim()) return;
-  await db.from("blooming_posts").insert([{user_id: S.user.id, text}]);
-  $("#postText").value="";
-  loadFeed();
-}
-
-async function toggleLike(postId, iLiked){
-  if(iLiked) {
-    await db.from("blooming_likes").delete().match({post_id: postId, user_id: S.user.id});
-  } else {
-    await db.from("blooming_likes").insert([{post_id: postId, user_id: S.user.id}]);
-  }
-  loadFeed();
-}
-
-async function deletePost(id){
-  if(!confirm("Excluir este post?")) return;
-  await db.from("blooming_posts").delete().eq("id", id);
-  loadFeed();
-}
-
-function openComment(postId){
-  $("#modal").innerHTML=`
-    <div class="modalbox">
-      <h3>Comentários</h3>
-      <div id="commentsList" style="margin:15px 0">Carregando...</div>
-      <input id="commentText" class="field" style="width:100%;padding:12px;background:var(--bg);border:1px solid var(--line);border-radius:10px" placeholder="Escreva...">
-      <div style="display:flex;gap:10px;margin-top:15px">
-        <button class="btn-secondary" style="margin:0" onclick="closeModal()">Fechar</button>
-        <button class="btn-primary" style="margin:0" onclick="addComment('${postId}')">Enviar</button>
-      </div>
-    </div>`;
-  $("#modal").classList.add("open");
-  loadComments(postId);
-}
-
-async function loadComments(postId){
-  const {data}=await db.from("blooming_comments").select("*, blooming_profiles(nome, username)").eq("post_id", postId);
-  $("#commentsList").innerHTML = data.map(c=>`<div style="margin-bottom:8px"><b>${c.blooming_profiles?.nome}</b> ${c.text}</div>`).join("") || "Nenhum.";
-}
-
-async function addComment(postId){
-  const text = $("#commentText").value;
-  if(!text.trim()) return;
-  await db.from("blooming_comments").insert([{post_id: postId, user_id: S.user.id, text}]);
-  $("#commentText").value="";
-  loadComments(postId);
-  loadFeed();
-}
-
-function closeModal(){ $("#modal").classList.remove("open"); }
-
-function openEditProfile(){
-  $("#modal").innerHTML=`
-    <div class="modalbox">
-      <h3>Editar Perfil</h3>
-      <div class="field"><label>Nome</label><input id="editName" value="${S.profile.nome}"></div>
-      <div class="field"><label>Bio</label><textarea id="editBio">${S.profile.bio || ''}</textarea></div>
-      <div style="display:flex;gap:10px;margin-top:15px">
-        <button class="btn-secondary" style="margin:0" onclick="closeModal()">Cancelar</button>
-        <button class="btn-primary" style="margin:0" onclick="saveProfile()">Salvar</button>
-      </div>
-    </div>`;
-  $("#modal").classList.add("open");
-}
-
-async function saveProfile(){
-  const nome=$("#editName").value;
-  const bio=$("#editBio").value;
-  await db.from("blooming_profiles").update({nome, bio}).eq("id", S.user.id);
-  S.profile.nome = nome;
-  S.profile.bio = bio;
-  closeModal();
-  renderApp();
-}
-
-function logout(){
-  db.auth.signOut();
-  S.user=null; S.profile=null;
-  renderLogin();
-}
-
-checkSession();
-</script>
-</body>
-</html>
