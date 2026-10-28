@@ -73,7 +73,7 @@ function renderApp(){
       <main>
         <div class="tp">Início</div>
         <div class="cp">
-          <div class="av">${S.profile.avatar_url?`<img src="${S.profile.avatar_url}">`:S.profile.emoji}</div>
+          <div class="av">${S.profile.avatar_url?`<img src="${S.profile.avatar_url}">`:(S.profile.emoji||'🌸')}</div>
           <div style="flex:1">
             <textarea id="postText" placeholder="O que está florescendo?"></textarea>
             <div style="display:flex;justify-content:flex-end"><button class="b" onclick="publish()">Publicar</button></div>
@@ -98,7 +98,7 @@ async function loadFeed(){
     
   $("#feed").innerHTML=data.map(p=>`
     <div class="po">
-      <div class="av">${p.blooming_profiles?.avatar_url?`<img src="${p.blooming_profiles.avatar_url}">`:p.blooming_profiles?.emoji||'🌸'}</div>
+      <div class="av">${p.blooming_profiles?.avatar_url?`<img src="${p.blooming_profiles.avatar_url}">`:(p.blooming_profiles?.emoji||'🌸')}</div>
       <div class="bd">
         <b>${p.blooming_profiles?.nome}</b> <span style="color:var(--mut)">@${p.blooming_profiles?.username}</span>
         <div class="tx">${p.text}</div>
